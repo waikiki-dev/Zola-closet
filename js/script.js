@@ -2,7 +2,7 @@
    ZOLA'S CLOSET
    KIDS WEAR STORE
    FIREBASE VERSION
-   FULL PRODUCTION-READY FRONTEND
+   FULLY UPDATED FRONTEND
 ===================================================== */
 
 import {
@@ -23,123 +23,20 @@ import {
 
 /* =====================================================
    PRODUCT DATABASE
+   IMPORTANT:
+   No fake/sample products are automatically injected.
+   
+   Products can later be connected to Firebase.
 ===================================================== */
 
-const products = [
-
-  {
-    id: 1,
-    name: "Pink Daisy Summer Dress",
-    category: "girls",
-    price: 499,
-    oldPrice: 699,
-    rating: 4.9,
-    discount: 29,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "A cute and comfortable summer dress designed for little girls."
-  },
-
-  {
-    id: 2,
-    name: "Little Explorer T-Shirt Set",
-    category: "boys",
-    price: 399,
-    oldPrice: 599,
-    rating: 4.8,
-    discount: 33,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Comfortable everyday outfit set made for active little explorers."
-  },
-
-  {
-    id: 3,
-    name: "Sweet Baby Romper",
-    category: "baby",
-    price: 349,
-    oldPrice: 499,
-    rating: 4.9,
-    discount: 30,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Soft and comfortable baby romper perfect for everyday wear."
-  },
-
-  {
-    id: 4,
-    name: "Mini Princess Outfit Set",
-    category: "sets",
-    price: 599,
-    oldPrice: 799,
-    rating: 4.8,
-    discount: 25,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Adorable outfit set designed for little princesses."
-  },
-
-  {
-    id: 5,
-    name: "Cute Bunny Kids Shirt",
-    category: "girls",
-    price: 299,
-    oldPrice: 449,
-    rating: 4.7,
-    discount: 33,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Cute everyday shirt with a playful bunny design."
-  },
-
-  {
-    id: 6,
-    name: "Little Hero Casual Set",
-    category: "boys",
-    price: 449,
-    oldPrice: 649,
-    rating: 4.8,
-    discount: 31,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "A comfortable casual outfit for everyday adventures."
-  },
-
-  {
-    id: 7,
-    name: "Baby Bear Cotton Set",
-    category: "baby",
-    price: 449,
-    oldPrice: 599,
-    rating: 4.9,
-    discount: 25,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Soft cotton clothing set designed for babies."
-  },
-
-  {
-    id: 8,
-    name: "Rainbow Playtime Set",
-    category: "sets",
-    price: 549,
-    oldPrice: 749,
-    rating: 4.8,
-    discount: 27,
-    image: "YOUR_CLOUDINARY_IMAGE_URL",
-    description:
-      "Colorful and comfortable outfit set perfect for playtime."
-  }
-
-];
+const products = [];
 
 
 /* =====================================================
    APP STATE
 ===================================================== */
 
-const featuredProducts =
-  products.slice(0, 5);
+const featuredProducts = [];
 
 let heroIndex = 0;
 let heroTimer = null;
@@ -197,7 +94,7 @@ const accountView =
 
 
 /* =====================================================
-   LOCAL STORAGE HELPER
+   LOCAL STORAGE
 ===================================================== */
 
 function loadLocalStorage(
@@ -238,111 +135,16 @@ function loadLocalStorage(
 
 function saveFavorites() {
 
-  try {
-
-    localStorage.setItem(
-      "zolas-favorites",
-      JSON.stringify(favorites)
-    );
-
-  } catch (error) {
-
-    console.warn(
-      "Unable to save favorites:",
-      error
-    );
-
-  }
+  localStorage.setItem(
+    "zolas-favorites",
+    JSON.stringify(favorites)
+  );
 
 }
 
 
 /* =====================================================
-   SAVE CART
-===================================================== */
-
-function saveCart() {
-
-  normalizeCart();
-
-  try {
-
-    localStorage.setItem(
-      "zolas-cart",
-      JSON.stringify(cart)
-    );
-
-  } catch (error) {
-
-    console.warn(
-      "Unable to save cart:",
-      error
-    );
-
-  }
-
-  renderCart();
-  updateCartCount();
-
-}
-
-
-/* =====================================================
-   NORMALIZE CART
-===================================================== */
-
-function normalizeCart() {
-
-  if (!Array.isArray(cart)) {
-
-    cart = [];
-
-    return;
-
-  }
-
-
-  cart =
-    cart
-      .filter(item => {
-
-        if (!item)
-          return false;
-
-        const product =
-          products.find(
-            product =>
-              product.id ===
-              Number(item.id)
-          );
-
-        return (
-          product &&
-          Number(item.quantity) > 0
-        );
-
-      })
-      .map(item => ({
-
-        id:
-          Number(item.id),
-
-        quantity:
-          Math.min(
-            99,
-            Math.max(
-              1,
-              Number(item.quantity)
-            )
-          )
-
-      }));
-
-}
-
-
-/* =====================================================
-   HERO RENDER
+   HERO
 ===================================================== */
 
 function renderHero() {
@@ -353,9 +155,22 @@ function renderHero() {
   const dots =
     $("heroDots");
 
-
   if (!track || !dots)
     return;
+
+
+  /*
+    If there are no real products yet,
+    keep the existing hero HTML/design.
+  */
+
+  if (!featuredProducts.length) {
+
+    dots.innerHTML = "";
+
+    return;
+
+  }
 
 
   track.innerHTML =
@@ -418,6 +233,7 @@ function renderHero() {
 
                 </button>
 
+
                 <button
                   class="btn btn-secondary"
                   onclick="addToCart(${product.id})"
@@ -462,10 +278,6 @@ function renderHero() {
 
 }
 
-
-/* =====================================================
-   HERO TITLES
-===================================================== */
 
 function getHeroTitle(
   product,
@@ -513,10 +325,6 @@ function getHeroTitle(
 }
 
 
-/* =====================================================
-   UPDATE HERO
-===================================================== */
-
 function updateHero() {
 
   const track =
@@ -529,6 +337,10 @@ function updateHero() {
 
 
   if (!track)
+    return;
+
+
+  if (!featuredProducts.length)
     return;
 
 
@@ -550,10 +362,6 @@ function updateHero() {
 }
 
 
-/* =====================================================
-   NEXT HERO
-===================================================== */
-
 function nextHero() {
 
   if (!featuredProducts.length)
@@ -571,10 +379,6 @@ function nextHero() {
 
 }
 
-
-/* =====================================================
-   PREVIOUS HERO
-===================================================== */
 
 function previousHero() {
 
@@ -599,15 +403,7 @@ function previousHero() {
 }
 
 
-/* =====================================================
-   GO TO HERO
-===================================================== */
-
 function goToHero(index) {
-
-  index =
-    Number(index);
-
 
   if (
     index < 0 ||
@@ -616,8 +412,7 @@ function goToHero(index) {
     return;
 
 
-  heroIndex =
-    index;
+  heroIndex = index;
 
   updateHero();
 
@@ -625,10 +420,6 @@ function goToHero(index) {
 
 }
 
-
-/* =====================================================
-   HERO TIMER
-===================================================== */
 
 function startHeroTimer() {
 
@@ -701,8 +492,7 @@ if (heroSlider) {
 
   heroSlider.addEventListener(
     "mouseenter",
-    () =>
-      clearInterval(heroTimer)
+    () => clearInterval(heroTimer)
   );
 
 
@@ -729,6 +519,49 @@ function renderProducts() {
 
   if (!container)
     return;
+
+
+  /*
+    IMPORTANT:
+    Do not inject fake products.
+  */
+
+  if (!products.length) {
+
+    /*
+      If products are already written in HTML,
+      don't destroy them.
+    */
+
+    if (
+      container.children.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="no-results">
+
+          <div style="font-size:42px;">
+            🎀
+          </div>
+
+          <h3>
+            Little looks coming soon
+          </h3>
+
+          <p>
+            Our cute collection will be available here soon.
+          </p>
+
+        </div>
+
+      `;
+
+    }
+
+    return;
+
+  }
 
 
   const search =
@@ -821,40 +654,9 @@ function renderProducts() {
                     ${isFavorite ? "active" : ""}
                   "
                   onclick="favoriteProduct(this, ${product.id})"
-                  aria-label="${
-                    isFavorite
-                      ? "Remove from favorites"
-                      : "Add to favorites"
-                  }"
                   type="button">
 
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="${
-                      isFavorite
-                        ? "currentColor"
-                        : "none"
-                    }"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round">
-
-                    <path
-                      d="
-                        M20.84 4.61
-                        a5.5 5.5 0 0 0-7.78 0
-                        L12 5.67
-                        l-1.06-1.06
-                        a5.5 5.5 0 0 0-7.78 7.78
-                        l1.06 1.06
-                        L12 21.23
-                        l7.78-7.78
-                        1.06-1.06
-                        a5.5 5.5 0 0 0 0-7.78z">
-                    </path>
-
-                  </svg>
+                  ♡
 
                 </button>
 
@@ -936,14 +738,10 @@ function renderProducts() {
 
 
 /* =====================================================
-   VIEW PRODUCT
+   PRODUCT MODAL
 ===================================================== */
 
 function viewProduct(id) {
-
-  id =
-    Number(id);
-
 
   selectedProduct =
     products.find(
@@ -955,7 +753,7 @@ function viewProduct(id) {
   if (!selectedProduct) {
 
     showToast(
-      "Product not found."
+      "Product information is not available yet."
     );
 
     return;
@@ -972,21 +770,15 @@ function viewProduct(id) {
     $("productModal");
 
 
-  if (modal) {
-
+  if (modal)
     modal.classList.add("show");
-
-    document.body.classList.add(
-      "modal-open"
-    );
-
-  }
 
 }
 
 
 /* =====================================================
    CLOSE PRODUCT
+   IMPORTANT FIX
 ===================================================== */
 
 function closeProduct() {
@@ -1002,11 +794,6 @@ function closeProduct() {
     );
 
   }
-
-
-  document.body.classList.remove(
-    "modal-open"
-  );
 
 
   selectedProduct = null;
@@ -1047,7 +834,6 @@ function renderProductDetails() {
         <img
           src="${escapeHtml(product.image)}"
           alt="${escapeHtml(product.name)}"
-          onerror="this.style.display='none'"
         >
 
       </div>
@@ -1101,8 +887,7 @@ function renderProductDetails() {
 
           <button
             onclick="changeProductQuantity(-1)"
-            type="button"
-            aria-label="Decrease quantity">
+            type="button">
 
             −
 
@@ -1116,8 +901,7 @@ function renderProductDetails() {
 
           <button
             onclick="changeProductQuantity(1)"
-            type="button"
-            aria-label="Increase quantity">
+            type="button">
 
             +
 
@@ -1152,16 +936,7 @@ function changeProductQuantity(
   amount
 ) {
 
-  amount =
-    Number(amount);
-
-
-  if (!Number.isFinite(amount))
-    return;
-
-
-  selectedQuantity +=
-    amount;
+  selectedQuantity += amount;
 
 
   if (selectedQuantity < 1)
@@ -1192,15 +967,8 @@ function changeProductQuantity(
 
 function addSelectedProductToCart() {
 
-  if (!selectedProduct) {
-
-    showToast(
-      "Please select a product first."
-    );
-
+  if (!selectedProduct)
     return;
-
-  }
 
 
   const existing =
@@ -1213,12 +981,8 @@ function addSelectedProductToCart() {
 
   if (existing) {
 
-    existing.quantity =
-      Math.min(
-        99,
-        existing.quantity +
-        selectedQuantity
-      );
+    existing.quantity +=
+      selectedQuantity;
 
   } else {
 
@@ -1234,6 +998,8 @@ function addSelectedProductToCart() {
 
   }
 
+
+  normalizeCart();
 
   saveCart();
 
@@ -1253,26 +1019,75 @@ function addSelectedProductToCart() {
 
 
 /* =====================================================
-   ADD TO CART
+   CART
 ===================================================== */
+
+function normalizeCart() {
+
+  cart =
+    cart
+      .filter(item => {
+
+        const product =
+          products.find(
+            p => p.id === item.id
+          );
+
+        return (
+          product &&
+          Number(item.quantity) > 0
+        );
+
+      })
+      .map(item => ({
+
+        id:
+          item.id,
+
+        quantity:
+          Math.min(
+            99,
+            Math.max(
+              1,
+              Number(item.quantity)
+            )
+          )
+
+      }));
+
+}
+
+
+function saveCart() {
+
+  normalizeCart();
+
+
+  localStorage.setItem(
+    "zolas-cart",
+    JSON.stringify(cart)
+  );
+
+
+  renderCart();
+
+  updateCartCount();
+
+}
+
 
 function addToCart(id) {
 
-  id =
-    Number(id);
-
-
   const product =
     products.find(
-      p =>
-        p.id === id
+      p => p.id === id
     );
 
 
   if (!product) {
 
     showToast(
-      "Product not found."
+      "Product is not available yet."
     );
 
     return;
@@ -1305,11 +1120,8 @@ function addToCart(id) {
 
     cart.push({
 
-      id:
-        id,
-
-      quantity:
-        1
+      id,
+      quantity: 1
 
     });
 
@@ -1326,19 +1138,12 @@ function addToCart(id) {
 }
 
 
-/* =====================================================
-   CART COUNT
-===================================================== */
-
 function updateCartCount() {
 
   const count =
     cart.reduce(
       (sum, item) =>
-        sum +
-        Number(
-          item.quantity || 0
-        ),
+        sum + Number(item.quantity || 0),
       0
     );
 
@@ -1450,7 +1255,6 @@ function renderCart() {
                   src="${escapeHtml(product.image)}"
                   alt="${escapeHtml(product.name)}"
                   loading="lazy"
-                  onerror="this.style.display='none'"
                 >
 
               </div>
@@ -1472,8 +1276,7 @@ function renderCart() {
 
                   <button
                     onclick="changeQuantity(${product.id}, -1)"
-                    type="button"
-                    aria-label="Decrease quantity">
+                    type="button">
 
                     −
 
@@ -1487,8 +1290,7 @@ function renderCart() {
 
                   <button
                     onclick="changeQuantity(${product.id}, 1)"
-                    type="button"
-                    aria-label="Increase quantity">
+                    type="button">
 
                     +
 
@@ -1532,26 +1334,14 @@ function renderCart() {
 }
 
 
-/* =====================================================
-   CHANGE CART QUANTITY
-===================================================== */
-
 function changeQuantity(
   id,
   amount
 ) {
 
-  id =
-    Number(id);
-
-  amount =
-    Number(amount);
-
-
   const item =
     cart.find(
-      i =>
-        i.id === id
+      i => i.id === id
     );
 
 
@@ -1559,16 +1349,14 @@ function changeQuantity(
     return;
 
 
-  item.quantity +=
-    amount;
+  item.quantity += amount;
 
 
   if (item.quantity <= 0) {
 
     cart =
       cart.filter(
-        i =>
-          i.id !== id
+        i => i.id !== id
       );
 
   }
@@ -1590,20 +1378,11 @@ function changeQuantity(
 }
 
 
-/* =====================================================
-   REMOVE FROM CART
-===================================================== */
-
 function removeFromCart(id) {
-
-  id =
-    Number(id);
-
 
   const product =
     products.find(
-      p =>
-        p.id === id
+      p => p.id === id
     );
 
 
@@ -1627,7 +1406,7 @@ function removeFromCart(id) {
 
 
 /* =====================================================
-   OPEN CART
+   OPEN / CLOSE CART
 ===================================================== */
 
 function openCart() {
@@ -1639,17 +1418,16 @@ function openCart() {
     $("cartOverlay");
 
 
-  if (overlay)
+  if (overlay) {
+
     overlay.classList.add(
       "show"
     );
 
+  }
+
 }
 
-
-/* =====================================================
-   CLOSE CART
-===================================================== */
 
 function closeCart() {
 
@@ -1657,10 +1435,13 @@ function closeCart() {
     $("cartOverlay");
 
 
-  if (overlay)
+  if (overlay) {
+
     overlay.classList.remove(
       "show"
     );
+
+  }
 
 }
 
@@ -1670,9 +1451,6 @@ function closeCart() {
 ===================================================== */
 
 function startCheckout() {
-
-  normalizeCart();
-
 
   if (!cart.length) {
 
@@ -1711,16 +1489,10 @@ function startCheckout() {
 
 
   if (overlay)
-    overlay.classList.add(
-      "show"
-    );
+    overlay.classList.add("show");
 
 }
 
-
-/* =====================================================
-   CLOSE CHECKOUT
-===================================================== */
 
 function closeCheckout() {
 
@@ -1729,9 +1501,7 @@ function closeCheckout() {
 
 
   if (overlay)
-    overlay.classList.remove(
-      "show"
-    );
+    overlay.classList.remove("show");
 
 }
 
@@ -1748,9 +1518,6 @@ function renderCheckout() {
 
   if (!container)
     return;
-
-
-  normalizeCart();
 
 
   let subtotal = 0;
@@ -1851,10 +1618,6 @@ function renderCheckout() {
 }
 
 
-/* =====================================================
-   CHECKOUT TOTAL
-===================================================== */
-
 function updateCheckoutTotal() {
 
   let subtotal = 0;
@@ -1952,9 +1715,6 @@ async function placeOrder() {
   }
 
 
-  normalizeCart();
-
-
   if (!cart.length) {
 
     showToast(
@@ -1968,54 +1728,23 @@ async function placeOrder() {
   }
 
 
-  const nameElement =
-    $("customerName");
-
-  const emailElement =
-    $("customerEmail");
-
-  const phoneElement =
-    $("customerPhone");
-
-  const addressElement =
-    $("customerAddress");
-
-  const cityElement =
-    $("customerCity");
-
-  const provinceElement =
-    $("customerProvince");
-
-
   const name =
-    nameElement
-      ? nameElement.value.trim()
-      : "";
+    $("customerName")?.value.trim() || "";
 
   const email =
-    emailElement
-      ? emailElement.value.trim()
-      : "";
+    $("customerEmail")?.value.trim() || "";
 
   const phone =
-    phoneElement
-      ? phoneElement.value.trim()
-      : "";
+    $("customerPhone")?.value.trim() || "";
 
   const address =
-    addressElement
-      ? addressElement.value.trim()
-      : "";
+    $("customerAddress")?.value.trim() || "";
 
   const city =
-    cityElement
-      ? cityElement.value.trim()
-      : "";
+    $("customerCity")?.value.trim() || "";
 
   const province =
-    provinceElement
-      ? provinceElement.value.trim()
-      : "";
+    $("customerProvince")?.value.trim() || "";
 
 
   if (
@@ -2036,26 +1765,15 @@ async function placeOrder() {
   }
 
 
-  const paymentElement =
-    $("paymentMethod");
-
-
   const paymentMethod =
-    paymentElement
-      ? paymentElement.value
-      : "Not specified";
-
-
-  const shippingElement =
-    $("shippingMethod");
+    $("paymentMethod")?.value ||
+    "Not specified";
 
 
   const shipping =
-    shippingElement
-      ? Number(
-          shippingElement.value || 0
-        )
-      : 0;
+    Number(
+      $("shippingMethod")?.value || 0
+    );
 
 
   let subtotal = 0;
@@ -2145,9 +1863,7 @@ async function placeOrder() {
     customer: {
 
       name,
-
       email,
-
       phone
 
     },
@@ -2155,9 +1871,7 @@ async function placeOrder() {
     shippingAddress: {
 
       address,
-
       city,
-
       province
 
     },
@@ -2166,9 +1880,7 @@ async function placeOrder() {
       orderItems,
 
     subtotal,
-
     shipping,
-
     total,
 
     paymentMethod,
@@ -2185,9 +1897,7 @@ async function placeOrder() {
 
     isPlacingOrder = true;
 
-    setCheckoutButtonLoading(
-      true
-    );
+    setCheckoutButtonLoading(true);
 
 
     const orderRef =
@@ -2251,9 +1961,7 @@ async function placeOrder() {
 
     isPlacingOrder = false;
 
-    setCheckoutButtonLoading(
-      false
-    );
+    setCheckoutButtonLoading(false);
 
   }
 
@@ -2281,9 +1989,7 @@ function setCheckoutButtonLoading(
 
         button.disabled = true;
 
-        if (
-          !button.dataset.originalText
-        ) {
+        if (!button.dataset.originalText) {
 
           button.dataset.originalText =
             button.textContent;
@@ -2297,9 +2003,7 @@ function setCheckoutButtonLoading(
 
         button.disabled = false;
 
-        if (
-          button.dataset.originalText
-        ) {
+        if (button.dataset.originalText) {
 
           button.textContent =
             button.dataset.originalText;
@@ -2361,7 +2065,6 @@ function showOrderSuccess(
         <strong>
           #${escapeHtml(orderNumber)}
         </strong>
-
       </p>
 
 
@@ -2390,10 +2093,6 @@ function showOrderSuccess(
 }
 
 
-/* =====================================================
-   FINISH ORDER
-===================================================== */
-
 function finishOrder() {
 
   cart = [];
@@ -2416,10 +2115,6 @@ function favoriteProduct(
   productId
 ) {
 
-  productId =
-    Number(productId);
-
-
   const index =
     favorites.indexOf(
       productId
@@ -2433,33 +2128,9 @@ function favoriteProduct(
     );
 
 
-    if (button) {
-
-      button.classList.add(
-        "active"
-      );
-
-
-      button.setAttribute(
-        "aria-label",
-        "Remove from favorites"
-      );
-
-
-      const svg =
-        button.querySelector("svg");
-
-
-      if (svg) {
-
-        svg.setAttribute(
-          "fill",
-          "currentColor"
-        );
-
-      }
-
-    }
+    button.classList.add(
+      "active"
+    );
 
 
     showToast(
@@ -2474,33 +2145,9 @@ function favoriteProduct(
     );
 
 
-    if (button) {
-
-      button.classList.remove(
-        "active"
-      );
-
-
-      button.setAttribute(
-        "aria-label",
-        "Add to favorites"
-      );
-
-
-      const svg =
-        button.querySelector("svg");
-
-
-      if (svg) {
-
-        svg.setAttribute(
-          "fill",
-          "none"
-        );
-
-      }
-
-    }
+    button.classList.remove(
+      "active"
+    );
 
 
     showToast(
@@ -2528,16 +2175,8 @@ function showToast(message) {
     $("toast");
 
 
-  if (!toast) {
-
-    console.log(
-      "Toast:",
-      message
-    );
-
+  if (!toast)
     return;
-
-  }
 
 
   toast.textContent =
@@ -2557,9 +2196,7 @@ function showToast(message) {
   );
 
 
-  clearTimeout(
-    toastTimer
-  );
+  clearTimeout(toastTimer);
 
 
   toastTimer =
@@ -2583,9 +2220,7 @@ function showToast(message) {
 
 function escapeHtml(value) {
 
-  return String(
-    value ?? ""
-  )
+  return String(value ?? "")
 
     .replace(
       /&/g,
@@ -2890,10 +2525,6 @@ document.addEventListener(
    AUTH
 ===================================================== */
 
-/* =====================================================
-   OPEN LOGIN
-===================================================== */
-
 function openLogin() {
 
   if (loginView)
@@ -2914,20 +2545,13 @@ function openLogin() {
     );
 
 
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
 
-  }
-
 }
 
-
-/* =====================================================
-   OPEN REGISTER
-===================================================== */
 
 function openRegister() {
 
@@ -2949,20 +2573,13 @@ function openRegister() {
     );
 
 
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
 
-  }
-
 }
 
-
-/* =====================================================
-   OPEN ACCOUNT
-===================================================== */
 
 function openAccount() {
 
@@ -2996,6 +2613,7 @@ function openAccount() {
   const accountName =
     $("accountName");
 
+
   const accountEmail =
     $("accountEmail");
 
@@ -3018,26 +2636,18 @@ function openAccount() {
   if (accountEmail) {
 
     accountEmail.textContent =
-      currentUser.email ||
-      "";
+      currentUser.email || "";
 
   }
 
 
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
 
-  }
-
 }
 
-
-/* =====================================================
-   CLOSE AUTH
-===================================================== */
 
 function closeAuth() {
 
@@ -3064,55 +2674,26 @@ if (registerForm) {
 
   registerForm.addEventListener(
     "submit",
-    async function (event) {
+    async event => {
 
       event.preventDefault();
 
 
-      const nameElement =
-        $("registerName");
-
-      const emailElement =
-        $("registerEmail");
-
-      const passwordElement =
-        $("registerPassword");
-
-
-      const submitButton =
-        registerForm.querySelector(
-          "button[type='submit']"
-        );
-
-
       const name =
-        nameElement
-          ? nameElement.value.trim()
-          : "";
+        $("registerName")?.value.trim() || "";
 
       const email =
-        emailElement
-          ? emailElement.value.trim()
-          : "";
+        $("registerEmail")?.value.trim() || "";
 
       const password =
-        passwordElement
-          ? passwordElement.value
-          : "";
+        $("registerPassword")?.value || "";
 
-
-      /* ================================================
-         VALIDATION
-      ================================================ */
 
       if (!name) {
 
         showToast(
           "Please enter your name."
         );
-
-        if (nameElement)
-          nameElement.focus();
 
         return;
 
@@ -3123,23 +2704,6 @@ if (registerForm) {
 
         showToast(
           "Please enter your email."
-        );
-
-        if (emailElement)
-          emailElement.focus();
-
-        return;
-
-      }
-
-
-      if (
-        !email.includes("@") ||
-        !email.includes(".")
-      ) {
-
-        showToast(
-          "Please enter a valid email address."
         );
 
         return;
@@ -3153,30 +2717,31 @@ if (registerForm) {
           "Password must be at least 6 characters."
         );
 
-        if (passwordElement)
-          passwordElement.focus();
-
         return;
 
       }
 
 
-      /* ================================================
-         LOADING
-      ================================================ */
-
-      setAuthButtonLoading(
-        submitButton,
-        true,
-        "Creating account..."
-      );
+      const submitButton =
+        registerForm.querySelector(
+          "button[type='submit']"
+        );
 
 
       try {
 
-        /* ================================================
-           CREATE ACCOUNT
-        ================================================ */
+        if (submitButton) {
+
+          submitButton.disabled = true;
+
+          submitButton.dataset.originalText =
+            submitButton.textContent;
+
+          submitButton.textContent =
+            "Creating Account...";
+
+        }
+
 
         const userCredential =
           await createUserWithEmailAndPassword(
@@ -3190,10 +2755,6 @@ if (registerForm) {
           userCredential.user;
 
 
-        /* ================================================
-           UPDATE FIREBASE PROFILE
-        ================================================ */
-
         await updateProfile(
           user,
           {
@@ -3202,10 +2763,6 @@ if (registerForm) {
           }
         );
 
-
-        /* ================================================
-           SAVE PROFILE TO DATABASE
-        ================================================ */
 
         await set(
           ref(
@@ -3233,12 +2790,7 @@ if (registerForm) {
         );
 
 
-        /* ================================================
-           RESET FORM
-        ================================================ */
-
         registerForm.reset();
-
 
         closeAuth();
 
@@ -3260,13 +2812,17 @@ if (registerForm) {
           error
         );
 
-
       } finally {
 
-        setAuthButtonLoading(
-          submitButton,
-          false
-        );
+        if (submitButton) {
+
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            submitButton.dataset.originalText ||
+            "Create Account";
+
+        }
 
       }
 
@@ -3288,16 +2844,27 @@ if (loginForm) {
 
   loginForm.addEventListener(
     "submit",
-    async function (event) {
+    async event => {
 
       event.preventDefault();
 
 
-      const emailElement =
-        $("loginEmail");
+      const email =
+        $("loginEmail")?.value.trim() || "";
 
-      const passwordElement =
-        $("loginPassword");
+      const password =
+        $("loginPassword")?.value || "";
+
+
+      if (!email || !password) {
+
+        showToast(
+          "Please enter your email and password."
+        );
+
+        return;
+
+      }
 
 
       const submitButton =
@@ -3306,139 +2873,27 @@ if (loginForm) {
         );
 
 
-      const email =
-        emailElement
-          ? emailElement.value.trim()
-          : "";
-
-      const password =
-        passwordElement
-          ? passwordElement.value
-          : "";
-
-
-      /* ================================================
-         VALIDATION
-      ================================================ */
-
-      if (!email) {
-
-        showToast(
-          "Please enter your email."
-        );
-
-        if (emailElement)
-          emailElement.focus();
-
-        return;
-
-      }
-
-
-      if (!password) {
-
-        showToast(
-          "Please enter your password."
-        );
-
-        if (passwordElement)
-          passwordElement.focus();
-
-        return;
-
-      }
-
-
-      if (
-        !email.includes("@") ||
-        !email.includes(".")
-      ) {
-
-        showToast(
-          "Please enter a valid email address."
-        );
-
-        return;
-
-      }
-
-
-      /* ================================================
-         LOADING
-      ================================================ */
-
-      setAuthButtonLoading(
-        submitButton,
-        true,
-        "Signing in..."
-      );
-
-
       try {
 
-        /* ================================================
-           FIREBASE LOGIN
-        ================================================ */
+        if (submitButton) {
 
-        const userCredential =
-          await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
+          submitButton.disabled = true;
 
+          submitButton.dataset.originalText =
+            submitButton.textContent;
 
-        const user =
-          userCredential.user;
-
-
-        /* ================================================
-           PROFILE SYNC
-        ================================================ */
-
-        const profileRef =
-          ref(
-            database,
-            `users/${user.uid}/profile`
-          );
-
-
-        const snapshot =
-          await get(profileRef);
-
-
-        if (!snapshot.exists()) {
-
-          await set(
-            profileRef,
-            {
-
-              uid:
-                user.uid,
-
-              name:
-                user.displayName ||
-                "Customer",
-
-              email:
-                user.email ||
-                email,
-
-              provider:
-                "password",
-
-              createdAt:
-                new Date().toISOString()
-
-            }
-          );
+          submitButton.textContent =
+            "Signing In...";
 
         }
 
 
-        /* ================================================
-           SUCCESS
-        ================================================ */
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
 
         loginForm.reset();
 
@@ -3446,9 +2901,7 @@ if (loginForm) {
 
 
         showToast(
-          user.displayName
-            ? `Welcome back, ${user.displayName}! ✨`
-            : "Welcome back! ✨"
+          "Welcome back! ✨"
         );
 
 
@@ -3464,67 +2917,22 @@ if (loginForm) {
           error
         );
 
-
       } finally {
 
-        setAuthButtonLoading(
-          submitButton,
-          false
-        );
+        if (submitButton) {
+
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            submitButton.dataset.originalText ||
+            "Sign In";
+
+        }
 
       }
 
     }
   );
-
-}
-
-
-/* =====================================================
-   AUTH BUTTON LOADING
-===================================================== */
-
-function setAuthButtonLoading(
-  button,
-  loading,
-  loadingText = "Loading..."
-) {
-
-  if (!button)
-    return;
-
-
-  if (loading) {
-
-    button.disabled = true;
-
-
-    if (
-      !button.dataset.originalText
-    ) {
-
-      button.dataset.originalText =
-        button.textContent;
-
-    }
-
-
-    button.textContent =
-      loadingText;
-
-  } else {
-
-    button.disabled = false;
-
-
-    button.textContent =
-      button.dataset.originalText ||
-      "Continue";
-
-
-    delete button.dataset.originalText;
-
-  }
 
 }
 
@@ -3539,25 +2947,20 @@ async function loginWithGoogle() {
     $("googleLoginBtn");
 
 
-  if (googleButton) {
-
-    googleButton.disabled =
-      true;
-
-    googleButton.dataset.originalText =
-      googleButton.textContent;
-
-    googleButton.textContent =
-      "Signing in...";
-
-  }
-
-
   try {
 
-    /* ================================================
-       GOOGLE AUTH
-    ================================================ */
+    if (googleButton) {
+
+      googleButton.disabled = true;
+
+      googleButton.dataset.originalText =
+        googleButton.textContent;
+
+      googleButton.textContent =
+        "Signing in...";
+
+    }
+
 
     const result =
       await signInWithPopup(
@@ -3569,10 +2972,6 @@ async function loginWithGoogle() {
     const user =
       result.user;
 
-
-    /* ================================================
-       DATABASE PROFILE
-    ================================================ */
 
     const profileRef =
       ref(
@@ -3605,52 +3004,8 @@ async function loginWithGoogle() {
           provider:
             "google",
 
-          photoURL:
-            user.photoURL ||
-            "",
-
           createdAt:
             new Date().toISOString()
-
-        }
-      );
-
-    } else {
-
-      /* ================================================
-         UPDATE GOOGLE PROFILE INFO
-      ================================================ */
-
-      const existingProfile =
-        snapshot.val() || {};
-
-
-      await set(
-        profileRef,
-        {
-
-          ...existingProfile,
-
-          uid:
-            user.uid,
-
-          name:
-            user.displayName ||
-            existingProfile.name ||
-            "Google Customer",
-
-          email:
-            user.email ||
-            existingProfile.email ||
-            "",
-
-          provider:
-            "google",
-
-          photoURL:
-            user.photoURL ||
-            existingProfile.photoURL ||
-            ""
 
         }
       );
@@ -3678,19 +3033,15 @@ async function loginWithGoogle() {
       error
     );
 
-
   } finally {
 
     if (googleButton) {
 
-      googleButton.disabled =
-        false;
+      googleButton.disabled = false;
 
       googleButton.textContent =
         googleButton.dataset.originalText ||
         "Continue with Google";
-
-      delete googleButton.dataset.originalText;
 
     }
 
@@ -3700,7 +3051,7 @@ async function loginWithGoogle() {
 
 
 /* =====================================================
-   GOOGLE LOGIN BUTTON
+   GOOGLE BUTTON
 ===================================================== */
 
 const googleLoginBtn =
@@ -3729,25 +3080,11 @@ if (logoutBtn) {
 
   logoutBtn.addEventListener(
     "click",
-    async function () {
-
-      if (!currentUser) {
-
-        closeAuth();
-
-        return;
-
-      }
-
-
-      logoutBtn.disabled =
-        true;
-
+    async () => {
 
       try {
 
         await signOut(auth);
-
 
         closeAuth();
 
@@ -3766,14 +3103,8 @@ if (logoutBtn) {
 
 
         showToast(
-          getFirebaseErrorMessage(error)
+          "Unable to sign out."
         );
-
-
-      } finally {
-
-        logoutBtn.disabled =
-          false;
 
       }
 
@@ -3836,10 +3167,6 @@ onAuthStateChanged(
               user.providerData?.[0]?.providerId ||
               "unknown",
 
-            photoURL:
-              user.photoURL ||
-              "",
-
             createdAt:
               new Date().toISOString()
 
@@ -3847,10 +3174,6 @@ onAuthStateChanged(
         );
 
       }
-
-
-      updateAuthUI();
-
 
     } catch (error) {
 
@@ -3899,10 +3222,6 @@ function updateAuthUI() {
       "Open my account"
     );
 
-
-    profileBtn.dataset.loggedIn =
-      "true";
-
   } else {
 
     profileBtn.classList.remove(
@@ -3910,8 +3229,9 @@ function updateAuthUI() {
     );
 
 
-    profileBtn.removeAttribute(
-      "title"
+    profileBtn.setAttribute(
+      "title",
+      "Sign in"
     );
 
 
@@ -3919,10 +3239,6 @@ function updateAuthUI() {
       "aria-label",
       "Sign in"
     );
-
-
-    profileBtn.dataset.loggedIn =
-      "false";
 
   }
 
@@ -3948,7 +3264,7 @@ if (profileBtn) {
 
 
 /* =====================================================
-   AUTH CLOSE BUTTON
+   AUTH CLOSE
 ===================================================== */
 
 const authClose =
@@ -4038,18 +3354,12 @@ if (authOverlay) {
 
 
 /* =====================================================
-   FIREBASE AUTH ERROR HANDLER
+   FIREBASE ERROR
 ===================================================== */
 
 function handleFirebaseAuthError(
   error
 ) {
-
-  console.error(
-    "Firebase authentication error:",
-    error
-  );
-
 
   showToast(
     getFirebaseErrorMessage(error)
@@ -4058,153 +3368,56 @@ function handleFirebaseAuthError(
 }
 
 
-/* =====================================================
-   FIREBASE ERROR MESSAGE
-===================================================== */
-
 function getFirebaseErrorMessage(
   error
 ) {
 
-  if (!error) {
-
-    return (
-      "Something went wrong. Please try again."
-    );
-
-  }
+  if (!error)
+    return "Something went wrong.";
 
 
   switch (error.code) {
 
     case "auth/email-already-in-use":
-
-      return (
-        "This email is already registered."
-      );
-
+      return "This email is already registered.";
 
     case "auth/invalid-email":
-
-      return (
-        "Please enter a valid email address."
-      );
-
+      return "Please enter a valid email address.";
 
     case "auth/weak-password":
-
-      return (
-        "Password is too weak. Use at least 6 characters."
-      );
-
+      return "Password is too weak. Use at least 6 characters.";
 
     case "auth/user-not-found":
-
-      return (
-        "No account found with this email."
-      );
-
+      return "No account found with this email.";
 
     case "auth/wrong-password":
-
-      return (
-        "Incorrect password."
-      );
-
+      return "Incorrect password.";
 
     case "auth/invalid-credential":
-
-      return (
-        "Incorrect email or password."
-      );
-
-
-    case "auth/invalid-login-credentials":
-
-      return (
-        "Incorrect email or password."
-      );
-
+      return "Incorrect email or password.";
 
     case "auth/popup-closed-by-user":
-
-      return (
-        "Google sign-in was cancelled."
-      );
-
+      return "Google sign-in was cancelled.";
 
     case "auth/popup-blocked":
-
-      return (
-        "Your browser blocked the Google sign-in popup."
-      );
-
-
-    case "auth/cancelled-popup-request":
-
-      return (
-        "Google sign-in was cancelled."
-      );
-
+      return "Your browser blocked the Google sign-in popup.";
 
     case "auth/network-request-failed":
-
-      return (
-        "Network error. Please check your internet connection."
-      );
-
+      return "Network error. Please check your internet connection.";
 
     case "auth/too-many-requests":
-
-      return (
-        "Too many attempts. Please try again later."
-      );
-
+      return "Too many attempts. Please try again later.";
 
     case "auth/user-disabled":
-
-      return (
-        "This account has been disabled."
-      );
-
+      return "This account has been disabled.";
 
     case "auth/operation-not-allowed":
-
-      return (
-        "This sign-in method is currently unavailable."
-      );
-
-
-    case "auth/account-exists-with-different-credential":
-
-      return (
-        "An account already exists with this email using another sign-in method."
-      );
-
+      return "This sign-in method is currently unavailable.";
 
     case "auth/requires-recent-login":
-
-      return (
-        "Please sign in again before continuing."
-      );
-
-
-    case "auth/credential-already-in-use":
-
-      return (
-        "This account is already connected to another user."
-      );
-
-
-    case "auth/timeout":
-
-      return (
-        "The request timed out. Please try again."
-      );
-
+      return "Please sign in again to continue.";
 
     default:
-
       return (
         error.message ||
         "Something went wrong. Please try again."
@@ -4217,7 +3430,6 @@ function getFirebaseErrorMessage(
 
 /* =====================================================
    GLOBAL FUNCTIONS
-   HTML onclick="" NEEDS THESE
 ===================================================== */
 
 window.viewProduct =
@@ -4262,6 +3474,12 @@ window.favoriteProduct =
 window.goToHero =
   goToHero;
 
+window.nextHero =
+  nextHero;
+
+window.previousHero =
+  previousHero;
+
 window.openLogin =
   openLogin;
 
@@ -4284,12 +3502,13 @@ window.loginWithGoogle =
 
 normalizeCart();
 
-saveCart();
-
-saveFavorites();
-
 renderHero();
 
+/*
+  IMPORTANT:
+  Do not overwrite existing HTML product cards
+  when there are no Firebase products yet.
+*/
 renderProducts();
 
 renderCart();
@@ -4310,20 +3529,21 @@ console.log(
 );
 
 console.log(
-  "🔥 Firebase authentication connected."
+  "🔥 Firebase authentication enabled."
 );
 
 console.log(
-  "🛍️ Products:",
-  products.length
+  "🛍️ Dynamic sample products disabled."
 );
 
 console.log(
-  "🛒 Cart items:",
-  cart.length
+  "🛒 Cart system ready."
 );
 
 console.log(
-  "♡ Favorites:",
-  favorites.length
+  "👤 Account system ready."
+);
+
+console.log(
+  "🎀 Hero controls ready."
 );

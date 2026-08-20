@@ -1,33 +1,80 @@
 // =====================================================
-// ZOLA'S CLOSET - FIREBASE CONFIG
+// ZOLA'S CLOSET - FIREBASE
 // =====================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
 import {
   getAuth
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 import {
-  getFirestore
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  getDatabase
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+
+// =====================================================
+// FIREBASE CONFIG
+// =====================================================
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC1SI1SKGfWKCHpKo7pTelBpwMe4kF7QSQ",
-  authDomain: "zola-closet.firebaseapp.com",
-  projectId: "zola-closet",
-  storageBucket: "zola-closet.firebasestorage.app",
-  messagingSenderId: "639479599220",
-  appId: "1:639479599220:web:1f805b0eb81e0581138121",
-  measurementId: "G-P98X01S36Q"
+
+  apiKey:
+    "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
+
+  authDomain:
+    "zola-closet.firebaseapp.com",
+
+  databaseURL:
+    "https://zola-closet-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+  projectId:
+    "zola-closet",
+
+  storageBucket:
+    "zola-closet.firebasestorage.app",
+
+  messagingSenderId:
+    "639479599220",
+
+  appId:
+    "1:639479599220:web:1f805b0eb81e0581138121",
+
+  measurementId:
+    "G-P98X01S36Q"
+
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
-// Firebase Authentication
-const auth = getAuth(app);
+// =====================================================
+// INITIALIZE FIREBASE
+// =====================================================
 
-// Firestore Database
-const db = getFirestore(app);
+const app =
+  initializeApp(firebaseConfig);
+
+
+// =====================================================
+// AUTHENTICATION
+// =====================================================
+
+const auth =
+  getAuth(app);
+
+
+// =====================================================
+// REALTIME DATABASE
+// =====================================================
+
+const db =
+  getDatabase(app);
+
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 export {
   app,

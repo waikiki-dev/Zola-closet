@@ -1,117 +1,133 @@
 /* =====================================================
    ZOLA'S CLOSET
    KIDS WEAR STORE
+   FIREBASE VERSION
 ===================================================== */
+
+import {
+  auth,
+  database,
+  googleProvider,
+  ref,
+  set,
+  get,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  signInWithPopup,
+  updateProfile,
+  onAuthStateChanged
+} from "./firebase.js";
 
 
 /* =====================================================
    PRODUCT DATABASE
-   TEMPORARY DATA
-   LATER: FIREBASE FIRESTORE
+   TEMPORARY PRODUCT DATA
+   LATER: FIREBASE / FIRESTORE
 ===================================================== */
 
 const products = [
 
   {
-    id:1,
-    name:"Pink Daisy Summer Dress",
-    category:"girls",
-    price:499,
-    oldPrice:699,
-    rating:4.9,
-    discount:29,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 1,
+    name: "Pink Daisy Summer Dress",
+    category: "girls",
+    price: 499,
+    oldPrice: 699,
+    rating: 4.9,
+    discount: 29,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "A cute and comfortable summer dress designed for little girls."
   },
 
   {
-    id:2,
-    name:"Little Explorer T-Shirt Set",
-    category:"boys",
-    price:399,
-    oldPrice:599,
-    rating:4.8,
-    discount:33,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 2,
+    name: "Little Explorer T-Shirt Set",
+    category: "boys",
+    price: 399,
+    oldPrice: 599,
+    rating: 4.8,
+    discount: 33,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Comfortable everyday outfit set made for active little explorers."
   },
 
   {
-    id:3,
-    name:"Sweet Baby Romper",
-    category:"baby",
-    price:349,
-    oldPrice:499,
-    rating:4.9,
-    discount:30,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 3,
+    name: "Sweet Baby Romper",
+    category: "baby",
+    price: 349,
+    oldPrice: 499,
+    rating: 4.9,
+    discount: 30,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Soft and comfortable baby romper perfect for everyday wear."
   },
 
   {
-    id:4,
-    name:"Mini Princess Outfit Set",
-    category:"sets",
-    price:599,
-    oldPrice:799,
-    rating:4.8,
-    discount:25,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 4,
+    name: "Mini Princess Outfit Set",
+    category: "sets",
+    price: 599,
+    oldPrice: 799,
+    rating: 4.8,
+    discount: 25,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Adorable outfit set designed for little princesses."
   },
 
   {
-    id:5,
-    name:"Cute Bunny Kids Shirt",
-    category:"girls",
-    price:299,
-    oldPrice:449,
-    rating:4.7,
-    discount:33,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 5,
+    name: "Cute Bunny Kids Shirt",
+    category: "girls",
+    price: 299,
+    oldPrice: 449,
+    rating: 4.7,
+    discount: 33,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Cute everyday shirt with a playful bunny design."
   },
 
   {
-    id:6,
-    name:"Little Hero Casual Set",
-    category:"boys",
-    price:449,
-    oldPrice:649,
-    rating:4.8,
-    discount:31,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 6,
+    name: "Little Hero Casual Set",
+    category: "boys",
+    price: 449,
+    oldPrice: 649,
+    rating: 4.8,
+    discount: 31,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "A comfortable casual outfit for everyday adventures."
   },
 
   {
-    id:7,
-    name:"Baby Bear Cotton Set",
-    category:"baby",
-    price:449,
-    oldPrice:599,
-    rating:4.9,
-    discount:25,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 7,
+    name: "Baby Bear Cotton Set",
+    category: "baby",
+    price: 449,
+    oldPrice: 599,
+    rating: 4.9,
+    discount: 25,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Soft cotton clothing set designed for babies."
   },
 
   {
-    id:8,
-    name:"Rainbow Playtime Set",
-    category:"sets",
-    price:549,
-    oldPrice:749,
-    rating:4.8,
-    discount:27,
-    image:"YOUR_CLOUDINARY_IMAGE_URL",
+    id: 8,
+    name: "Rainbow Playtime Set",
+    category: "sets",
+    price: 549,
+    oldPrice: 749,
+    rating: 4.8,
+    discount: 27,
+    image: "YOUR_CLOUDINARY_IMAGE_URL",
     description:
       "Colorful and comfortable outfit set perfect for playtime."
   }
@@ -123,8 +139,7 @@ const products = [
    HERO
 ===================================================== */
 
-const featuredProducts =
-  products.slice(0,5);
+const featuredProducts = products.slice(0, 5);
 
 let heroIndex = 0;
 let heroTimer = null;
@@ -156,26 +171,47 @@ let selectedQuantity = 1;
 
 
 /* =====================================================
+   FIREBASE USER
+===================================================== */
+
+let currentUser = null;
+
+
+/* =====================================================
+   AUTH ELEMENTS
+===================================================== */
+
+const authOverlay =
+  document.getElementById("authOverlay");
+
+const loginView =
+  document.getElementById("loginView");
+
+const registerView =
+  document.getElementById("registerView");
+
+const accountView =
+  document.getElementById("accountView");
+
+
+/* =====================================================
    HERO RENDER
 ===================================================== */
 
-function renderHero(){
+function renderHero() {
 
   const track =
-    document.getElementById(
-      "heroTrack"
-    );
+    document.getElementById("heroTrack");
 
   const dots =
-    document.getElementById(
-      "heroDots"
-    );
+    document.getElementById("heroDots");
 
+  if (!track || !dots) return;
 
   track.innerHTML =
     featuredProducts
       .map(
-        (product,index) => `
+        (product, index) => `
 
         <div class="hero-slide">
 
@@ -188,7 +224,6 @@ function renderHero(){
                 alt="${escapeHtml(product.name)}">
 
             </div>
-
 
             <div class="hero-discount-badge">
 
@@ -212,9 +247,8 @@ function renderHero(){
             </div>
 
             <h1>
-              ${getHeroTitle(product,index)}
+              ${getHeroTitle(product, index)}
             </h1>
-
 
             <div class="hero-slide-actions">
 
@@ -249,7 +283,7 @@ function renderHero(){
   dots.innerHTML =
     featuredProducts
       .map(
-        (product,index) => `
+        (product, index) => `
 
         <button
           class="
@@ -277,7 +311,7 @@ function renderHero(){
    HERO TITLES
 ===================================================== */
 
-function getHeroTitle(product,index){
+function getHeroTitle(product, index) {
 
   const titles = [
 
@@ -309,8 +343,7 @@ function getHeroTitle(product,index){
   ];
 
   return (
-    titles[index]
-    ||
+    titles[index] ||
     `
     Little Looks.
     <span>Big Style.</span>
@@ -324,25 +357,22 @@ function getHeroTitle(product,index){
    UPDATE HERO
 ===================================================== */
 
-function updateHero(){
+function updateHero() {
 
   const track =
-    document.getElementById(
-      "heroTrack"
-    );
+    document.getElementById("heroTrack");
 
   const dots =
-    document.querySelectorAll(
-      ".hero-dot"
-    );
+    document.querySelectorAll(".hero-dot");
 
+  if (!track) return;
 
   track.style.transform =
     `translateX(-${heroIndex * 100}%)`;
 
 
   dots.forEach(
-    (dot,index) => {
+    (dot, index) => {
 
       dot.classList.toggle(
         "active",
@@ -359,14 +389,14 @@ function updateHero(){
    NEXT HERO
 ===================================================== */
 
-function nextHero(){
+function nextHero() {
 
   heroIndex++;
 
-  if(
+  if (
     heroIndex >=
     featuredProducts.length
-  ){
+  ) {
 
     heroIndex = 0;
 
@@ -383,11 +413,11 @@ function nextHero(){
    PREVIOUS HERO
 ===================================================== */
 
-function previousHero(){
+function previousHero() {
 
   heroIndex--;
 
-  if(heroIndex < 0){
+  if (heroIndex < 0) {
 
     heroIndex =
       featuredProducts.length - 1;
@@ -405,7 +435,7 @@ function previousHero(){
    GO TO HERO
 ===================================================== */
 
-function goToHero(index){
+function goToHero(index) {
 
   heroIndex = index;
 
@@ -420,7 +450,7 @@ function goToHero(index){
    HERO TIMER
 ===================================================== */
 
-function startHeroTimer(){
+function startHeroTimer() {
 
   clearInterval(heroTimer);
 
@@ -430,10 +460,10 @@ function startHeroTimer(){
 
         heroIndex++;
 
-        if(
+        if (
           heroIndex >=
           featuredProducts.length
-        ){
+        ) {
 
           heroIndex = 0;
 
@@ -448,7 +478,7 @@ function startHeroTimer(){
 }
 
 
-function restartHeroTimer(){
+function restartHeroTimer() {
 
   startHeroTimer();
 
@@ -459,62 +489,70 @@ function restartHeroTimer(){
    HERO BUTTONS
 ===================================================== */
 
-document
-  .getElementById("heroNext")
-  .addEventListener(
+const heroNext =
+  document.getElementById("heroNext");
+
+const heroPrev =
+  document.getElementById("heroPrev");
+
+const heroSlider =
+  document.getElementById("heroSlider");
+
+
+if (heroNext) {
+
+  heroNext.addEventListener(
     "click",
     nextHero
   );
 
+}
 
-document
-  .getElementById("heroPrev")
-  .addEventListener(
+
+if (heroPrev) {
+
+  heroPrev.addEventListener(
     "click",
     previousHero
   );
 
+}
 
-/* =====================================================
-   HERO HOVER
-===================================================== */
 
-document
-  .getElementById("heroSlider")
-  .addEventListener(
+if (heroSlider) {
+
+  heroSlider.addEventListener(
     "mouseenter",
     () => clearInterval(heroTimer)
   );
 
 
-document
-  .getElementById("heroSlider")
-  .addEventListener(
+  heroSlider.addEventListener(
     "mouseleave",
     startHeroTimer
   );
+
+}
 
 
 /* =====================================================
    PRODUCTS
 ===================================================== */
 
-function renderProducts(){
+function renderProducts() {
 
   const container =
-    document.getElementById(
-      "products"
-    );
+    document.getElementById("products");
 
+  const searchInput =
+    document.getElementById("searchInput");
+
+  if (!container) return;
 
   const search =
-    document
-      .getElementById(
-        "searchInput"
-      )
-      .value
-      .toLowerCase()
-      .trim();
+    searchInput
+      ? searchInput.value.toLowerCase().trim()
+      : "";
 
 
   const filtered =
@@ -522,10 +560,8 @@ function renderProducts(){
       product => {
 
         const categoryMatch =
-          currentCategory === "all"
-          ||
-          product.category ===
-          currentCategory;
+          currentCategory === "all" ||
+          product.category === currentCategory;
 
 
         const searchMatch =
@@ -543,7 +579,7 @@ function renderProducts(){
     );
 
 
-  if(filtered.length === 0){
+  if (filtered.length === 0) {
 
     container.innerHTML = `
 
@@ -583,35 +619,37 @@ function renderProducts(){
               -${product.discount}%
             </div>
 
-<button
-  class="favorite"
-  onclick="favoriteProduct(this)"
-  aria-label="Add to favorites">
 
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round">
+            <button
+              class="favorite"
+              onclick="favoriteProduct(this, ${product.id})"
+              aria-label="Add to favorites"
+              type="button">
 
-    <path
-      d="M20.84 4.61
-         a5.5 5.5 0 0 0-7.78 0
-         L12 5.67
-         l-1.06-1.06
-         a5.5 5.5 0 0 0-7.78 7.78
-         l1.06 1.06
-         L12 21.23
-         l7.78-7.78
-         1.06-1.06
-         a5.5 5.5 0 0 0 0-7.78z">
-    </path>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
 
-  </svg>
+                <path
+                  d="M20.84 4.61
+                     a5.5 5.5 0 0 0-7.78 0
+                     L12 5.67
+                     l-1.06-1.06
+                     a5.5 5.5 0 0 0-7.78 7.78
+                     l1.06 1.06
+                     L12 21.23
+                     l7.78-7.78
+                     1.06-1.06
+                     a5.5 5.5 0 0 0 0-7.78z">
+                </path>
 
-</button>
+              </svg>
+
+            </button>
 
 
             <img
@@ -632,9 +670,8 @@ function renderProducts(){
 
               <button
                 class="view-product"
-                onclick="
-                  viewProduct(${product.id})
-                ">
+                onclick="viewProduct(${product.id})"
+                type="button">
 
                 View Outfit
 
@@ -643,9 +680,8 @@ function renderProducts(){
 
               <button
                 class="add-cart"
-                onclick="
-                  addToCart(${product.id})
-                ">
+                onclick="addToCart(${product.id})"
+                type="button">
 
                 🛍️ Add
 
@@ -668,7 +704,7 @@ function renderProducts(){
    VIEW PRODUCT
 ===================================================== */
 
-function viewProduct(id){
+function viewProduct(id) {
 
   selectedProduct =
     products.find(
@@ -677,8 +713,7 @@ function viewProduct(id){
     );
 
 
-  if(!selectedProduct)
-    return;
+  if (!selectedProduct) return;
 
 
   selectedQuantity = 1;
@@ -687,9 +722,7 @@ function viewProduct(id){
 
 
   document
-    .getElementById(
-      "productModal"
-    )
+    .getElementById("productModal")
     .classList.add("show");
 
 }
@@ -699,20 +732,17 @@ function viewProduct(id){
    PRODUCT DETAILS
 ===================================================== */
 
-function renderProductDetails(){
+function renderProductDetails() {
 
   const product =
     selectedProduct;
 
 
   document
-    .getElementById(
-      "productDetails"
-    )
+    .getElementById("productDetails")
     .innerHTML = `
 
     <div class="product-detail">
-
 
       <div class="product-detail-image">
 
@@ -770,10 +800,11 @@ function renderProductDetails(){
 
 
           <button
-            onclick="
-              changeProductQuantity(-1)
-            ">
+            onclick="changeProductQuantity(-1)"
+            type="button">
+
             −
+
           </button>
 
 
@@ -783,10 +814,11 @@ function renderProductDetails(){
 
 
           <button
-            onclick="
-              changeProductQuantity(1)
-            ">
+            onclick="changeProductQuantity(1)"
+            type="button">
+
             +
+
           </button>
 
         </div>
@@ -794,9 +826,8 @@ function renderProductDetails(){
 
         <button
           class="product-buy"
-          onclick="
-            addSelectedProductToCart()
-          ">
+          onclick="addSelectedProductToCart()"
+          type="button">
 
           🛍️ Add to Bag
 
@@ -815,12 +846,12 @@ function renderProductDetails(){
    PRODUCT QUANTITY
 ===================================================== */
 
-function changeProductQuantity(amount){
+function changeProductQuantity(amount) {
 
   selectedQuantity += amount;
 
 
-  if(selectedQuantity < 1){
+  if (selectedQuantity < 1) {
 
     selectedQuantity = 1;
 
@@ -833,7 +864,7 @@ function changeProductQuantity(amount){
     );
 
 
-  if(quantityElement){
+  if (quantityElement) {
 
     quantityElement.textContent =
       selectedQuantity;
@@ -847,10 +878,9 @@ function changeProductQuantity(amount){
    ADD SELECTED PRODUCT
 ===================================================== */
 
-function addSelectedProductToCart(){
+function addSelectedProductToCart() {
 
-  if(!selectedProduct)
-    return;
+  if (!selectedProduct) return;
 
 
   const existing =
@@ -861,12 +891,12 @@ function addSelectedProductToCart(){
     );
 
 
-  if(existing){
+  if (existing) {
 
     existing.quantity +=
       selectedQuantity;
 
-  }else{
+  } else {
 
     cart.push({
 
@@ -903,13 +933,16 @@ function addSelectedProductToCart(){
    CLOSE PRODUCT
 ===================================================== */
 
-function closeProduct(){
+function closeProduct() {
 
-  document
-    .getElementById(
-      "productModal"
-    )
-    .classList.remove("show");
+  const modal =
+    document.getElementById("productModal");
+
+  if (modal) {
+
+    modal.classList.remove("show");
+
+  }
 
 }
 
@@ -918,7 +951,7 @@ function closeProduct(){
    ADD TO CART
 ===================================================== */
 
-function addToCart(id){
+function addToCart(id) {
 
   const product =
     products.find(
@@ -926,8 +959,7 @@ function addToCart(id){
     );
 
 
-  if(!product)
-    return;
+  if (!product) return;
 
 
   const existing =
@@ -937,16 +969,16 @@ function addToCart(id){
     );
 
 
-  if(existing){
+  if (existing) {
 
     existing.quantity++;
 
-  }else{
+  } else {
 
     cart.push({
 
-      id:id,
-      quantity:1
+      id: id,
+      quantity: 1
 
     });
 
@@ -968,7 +1000,7 @@ function addToCart(id){
    SAVE CART
 ===================================================== */
 
-function saveCart(){
+function saveCart() {
 
   localStorage.setItem(
     "zolas-cart",
@@ -987,21 +1019,26 @@ function saveCart(){
    CART COUNT
 ===================================================== */
 
-function updateCartCount(){
+function updateCartCount() {
 
   const count =
     cart.reduce(
-      (sum,item) =>
+      (sum, item) =>
         sum + item.quantity,
       0
     );
 
 
-  document
-    .getElementById(
-      "cartCount"
-    )
-    .textContent = count;
+  const cartCount =
+    document.getElementById("cartCount");
+
+
+  if (cartCount) {
+
+    cartCount.textContent =
+      count;
+
+  }
 
 }
 
@@ -1010,15 +1047,15 @@ function updateCartCount(){
    RENDER CART
 ===================================================== */
 
-function renderCart(){
+function renderCart() {
 
   const container =
-    document.getElementById(
-      "cartItems"
-    );
+    document.getElementById("cartItems");
+
+  if (!container) return;
 
 
-  if(cart.length === 0){
+  if (cart.length === 0) {
 
     container.innerHTML = `
 
@@ -1042,9 +1079,7 @@ function renderCart(){
 
 
     document
-      .getElementById(
-        "cartTotal"
-      )
+      .getElementById("cartTotal")
       .textContent =
       "₱0";
 
@@ -1069,8 +1104,7 @@ function renderCart(){
           );
 
 
-        if(!product)
-          return "";
+        if (!product) return "";
 
 
         const subtotal =
@@ -1109,13 +1143,11 @@ function renderCart(){
               <div class="quantity">
 
                 <button
-                  onclick="
-                    changeQuantity(
-                      ${product.id},
-                      -1
-                    )
-                  ">
+                  onclick="changeQuantity(${product.id}, -1)"
+                  type="button">
+
                   −
+
                 </button>
 
 
@@ -1125,23 +1157,18 @@ function renderCart(){
 
 
                 <button
-                  onclick="
-                    changeQuantity(
-                      ${product.id},
-                      1
-                    )
-                  ">
+                  onclick="changeQuantity(${product.id}, 1)"
+                  type="button">
+
                   +
+
                 </button>
 
 
                 <button
                   class="remove"
-                  onclick="
-                    removeFromCart(
-                      ${product.id}
-                    )
-                  ">
+                  onclick="removeFromCart(${product.id})"
+                  type="button">
 
                   Remove
 
@@ -1161,9 +1188,7 @@ function renderCart(){
 
 
   document
-    .getElementById(
-      "cartTotal"
-    )
+    .getElementById("cartTotal")
     .textContent =
       "₱" +
       total.toLocaleString();
@@ -1175,7 +1200,7 @@ function renderCart(){
    CART QUANTITY
 ===================================================== */
 
-function changeQuantity(id,amount){
+function changeQuantity(id, amount) {
 
   const item =
     cart.find(
@@ -1183,14 +1208,13 @@ function changeQuantity(id,amount){
     );
 
 
-  if(!item)
-    return;
+  if (!item) return;
 
 
   item.quantity += amount;
 
 
-  if(item.quantity <= 0){
+  if (item.quantity <= 0) {
 
     cart =
       cart.filter(
@@ -1209,7 +1233,7 @@ function changeQuantity(id,amount){
    REMOVE
 ===================================================== */
 
-function removeFromCart(id){
+function removeFromCart(id) {
 
   cart =
     cart.filter(
@@ -1232,15 +1256,13 @@ function removeFromCart(id){
    OPEN CART
 ===================================================== */
 
-function openCart(){
+function openCart() {
 
   renderCart();
 
 
   document
-    .getElementById(
-      "cartOverlay"
-    )
+    .getElementById("cartOverlay")
     .classList.add("show");
 
 }
@@ -1250,12 +1272,10 @@ function openCart(){
    CLOSE CART
 ===================================================== */
 
-function closeCart(){
+function closeCart() {
 
   document
-    .getElementById(
-      "cartOverlay"
-    )
+    .getElementById("cartOverlay")
     .classList.remove("show");
 
 }
@@ -1265,13 +1285,9 @@ function closeCart(){
    CHECKOUT
 ===================================================== */
 
-function startCheckout(){
+function startCheckout() {
 
-  /* =================================================
-     CHECK CART
-  ================================================= */
-
-  if(cart.length === 0){
+  if (cart.length === 0) {
 
     showToast(
       "Your cart is empty"
@@ -1283,29 +1299,23 @@ function startCheckout(){
 
 
   /* =================================================
-     CHECK LOGIN
+     USER MUST BE LOGGED IN
   ================================================= */
 
-  if(!currentUser){
+  if (!currentUser) {
 
     closeCart();
 
     openLogin();
 
-
     showToast(
       "Please sign in before checkout."
     );
-
 
     return;
 
   }
 
-
-  /* =================================================
-     LOGGED IN → CHECKOUT
-  ================================================= */
 
   closeCart();
 
@@ -1313,9 +1323,7 @@ function startCheckout(){
 
 
   document
-    .getElementById(
-      "checkoutOverlay"
-    )
+    .getElementById("checkoutOverlay")
     .classList.add("show");
 
 }
@@ -1325,12 +1333,10 @@ function startCheckout(){
    CLOSE CHECKOUT
 ===================================================== */
 
-function closeCheckout(){
+function closeCheckout() {
 
   document
-    .getElementById(
-      "checkoutOverlay"
-    )
+    .getElementById("checkoutOverlay")
     .classList.remove("show");
 
 }
@@ -1340,12 +1346,10 @@ function closeCheckout(){
    CHECKOUT RENDER
 ===================================================== */
 
-function renderCheckout(){
+function renderCheckout() {
 
   const container =
-    document.getElementById(
-      "checkoutItems"
-    );
+    document.getElementById("checkoutItems");
 
 
   let subtotal = 0;
@@ -1362,8 +1366,7 @@ function renderCheckout(){
           );
 
 
-        if(!product)
-          return "";
+        if (!product) return "";
 
 
         const total =
@@ -1397,12 +1400,42 @@ function renderCheckout(){
 
 
   document
-    .getElementById(
-      "checkoutSubtotal"
-    )
+    .getElementById("checkoutSubtotal")
     .textContent =
       "₱" +
       subtotal.toLocaleString();
+
+
+  /* =================================================
+     AUTO-FILL USER INFORMATION
+  ================================================= */
+
+  const customerEmail =
+    document.getElementById("customerEmail");
+
+
+  if (customerEmail && currentUser) {
+
+    customerEmail.value =
+      currentUser.email || "";
+
+  }
+
+
+  const customerName =
+    document.getElementById("customerName");
+
+
+  if (
+    customerName &&
+    currentUser &&
+    currentUser.displayName
+  ) {
+
+    customerName.value =
+      currentUser.displayName;
+
+  }
 
 
   updateCheckoutTotal();
@@ -1414,7 +1447,7 @@ function renderCheckout(){
    CHECKOUT TOTAL
 ===================================================== */
 
-function updateCheckoutTotal(){
+function updateCheckoutTotal() {
 
   let subtotal = 0;
 
@@ -1429,7 +1462,7 @@ function updateCheckoutTotal(){
         );
 
 
-      if(product){
+      if (product) {
 
         subtotal +=
           product.price *
@@ -1441,34 +1474,30 @@ function updateCheckoutTotal(){
   );
 
 
-  const shipping =
-    Number(
-      document
-        .getElementById(
-          "shippingMethod"
-        )
-        .value
+  const shippingElement =
+    document.getElementById(
+      "shippingMethod"
     );
 
 
+  const shipping =
+    shippingElement
+      ? Number(shippingElement.value)
+      : 0;
+
+
   document
-    .getElementById(
-      "checkoutShipping"
-    )
+    .getElementById("checkoutShipping")
     .textContent =
 
       shipping === 0
-      ?
-      "FREE"
-      :
-      "₱" +
-      shipping.toLocaleString();
+        ? "FREE"
+        : "₱" +
+          shipping.toLocaleString();
 
 
   document
-    .getElementById(
-      "checkoutTotal"
-    )
+    .getElementById("checkoutTotal")
     .textContent =
       "₱" +
       (
@@ -1481,72 +1510,76 @@ function updateCheckoutTotal(){
 
 /* =====================================================
    PLACE ORDER
+   SAVE TO FIREBASE REALTIME DATABASE
 ===================================================== */
 
-function placeOrder(){
+async function placeOrder() {
+
+  if (!currentUser) {
+
+    showToast(
+      "Please sign in before placing your order."
+    );
+
+    closeCheckout();
+
+    openLogin();
+
+    return;
+
+  }
+
 
   const name =
     document
-      .getElementById(
-        "customerName"
-      )
+      .getElementById("customerName")
       .value
       .trim();
 
 
   const email =
     document
-      .getElementById(
-        "customerEmail"
-      )
+      .getElementById("customerEmail")
       .value
       .trim();
 
 
   const phone =
     document
-      .getElementById(
-        "customerPhone"
-      )
+      .getElementById("customerPhone")
       .value
       .trim();
 
 
   const address =
     document
-      .getElementById(
-        "customerAddress"
-      )
+      .getElementById("customerAddress")
       .value
       .trim();
 
 
   const city =
     document
-      .getElementById(
-        "customerCity"
-      )
+      .getElementById("customerCity")
       .value
       .trim();
 
 
   const province =
     document
-      .getElementById(
-        "customerProvince"
-      )
+      .getElementById("customerProvince")
       .value
       .trim();
 
 
-  if(
+  if (
     !name ||
     !email ||
     !phone ||
     !address ||
     !city ||
     !province
-  ){
+  ) {
 
     showToast(
       "Please complete your information"
@@ -1557,25 +1590,231 @@ function placeOrder(){
   }
 
 
+  const paymentMethod =
+    document
+      .getElementById("paymentMethod")
+      .value;
+
+
+  const shippingMethod =
+    document
+      .getElementById("shippingMethod");
+
+
+  const shipping =
+    shippingMethod
+      ? Number(shippingMethod.value)
+      : 0;
+
+
+  let subtotal = 0;
+
+
+  const orderItems =
+    cart.map(
+      item => {
+
+        const product =
+          products.find(
+            p =>
+              p.id === item.id
+          );
+
+
+        if (!product) return null;
+
+
+        const itemTotal =
+          product.price *
+          item.quantity;
+
+
+        subtotal += itemTotal;
+
+
+        return {
+
+          productId:
+            product.id,
+
+          productName:
+            product.name,
+
+          price:
+            product.price,
+
+          quantity:
+            item.quantity,
+
+          total:
+            itemTotal
+
+        };
+
+      }
+    )
+    .filter(Boolean);
+
+
+  const total =
+    subtotal +
+    shipping;
+
+
   const orderNumber =
     "ZC" +
     Date.now()
       .toString()
-      .slice(-6);
+      .slice(-8);
 
 
-  const paymentMethod =
-    document
-      .getElementById(
-        "paymentMethod"
-      )
-      .value;
+  const orderData = {
 
+    orderNumber:
+
+      orderNumber,
+
+    userId:
+
+      currentUser.uid,
+
+    customer: {
+
+      name:
+        name,
+
+      email:
+        email,
+
+      phone:
+        phone
+
+    },
+
+    shippingAddress: {
+
+      address:
+        address,
+
+      city:
+        city,
+
+      province:
+        province
+
+    },
+
+    items:
+      orderItems,
+
+    subtotal:
+      subtotal,
+
+    shipping:
+      shipping,
+
+    total:
+      total,
+
+    paymentMethod:
+      paymentMethod,
+
+    status:
+      "pending",
+
+    createdAt:
+      new Date().toISOString()
+
+  };
+
+
+  try {
+
+    /*
+      Save order using UID + order number
+    */
+
+    const orderRef =
+      ref(
+        database,
+        `orders/${currentUser.uid}/${orderNumber}`
+      );
+
+
+    await set(
+      orderRef,
+      orderData
+    );
+
+
+    /*
+      Also save latest order reference
+      under the user's account
+    */
+
+    const userOrderRef =
+      ref(
+        database,
+        `users/${currentUser.uid}/orders/${orderNumber}`
+      );
+
+
+    await set(
+      userOrderRef,
+      {
+
+        orderNumber:
+          orderNumber,
+
+        total:
+          total,
+
+        status:
+          "pending",
+
+        createdAt:
+          orderData.createdAt
+
+      }
+    );
+
+
+    showOrderSuccess(
+      name,
+      orderNumber,
+      paymentMethod
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Order save error:",
+      error
+    );
+
+
+    showToast(
+      "Unable to place order. Please try again."
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   ORDER SUCCESS
+===================================================== */
+
+function showOrderSuccess(
+  name,
+  orderNumber,
+  paymentMethod
+) {
 
   document
-    .getElementById(
-      "checkoutContent"
-    )
+    .getElementById("checkoutContent")
     .innerHTML = `
 
       <div class="success-box">
@@ -1603,7 +1842,7 @@ function placeOrder(){
           <br>
 
           <strong>
-            #${orderNumber}
+            #${escapeHtml(orderNumber)}
           </strong>
 
         </p>
@@ -1617,7 +1856,8 @@ function placeOrder(){
 
         <button
           class="place-order"
-          onclick="finishOrder()">
+          onclick="finishOrder()"
+          type="button">
 
           Continue Shopping
 
@@ -1634,7 +1874,7 @@ function placeOrder(){
    FINISH ORDER
 ===================================================== */
 
-function finishOrder(){
+function finishOrder() {
 
   cart = [];
 
@@ -1651,17 +1891,22 @@ function finishOrder(){
    FAVORITE
 ===================================================== */
 
-function favoriteProduct(button){
+function favoriteProduct(button, productId) {
 
   button.classList.toggle("active");
 
-  if(button.classList.contains("active")){
 
-    showToast("Added to favorites ♡");
+  if (button.classList.contains("active")) {
 
-  }else{
+    showToast(
+      "Added to favorites ♡"
+    );
 
-    showToast("Removed from favorites");
+  } else {
+
+    showToast(
+      "Removed from favorites"
+    );
 
   }
 
@@ -1672,29 +1917,26 @@ function favoriteProduct(button){
    TOAST
 ===================================================== */
 
-function showToast(message){
+function showToast(message) {
 
   const toast =
-    document.getElementById(
-      "toast"
-    );
+    document.getElementById("toast");
+
+
+  if (!toast) return;
 
 
   toast.textContent =
     message;
 
 
-  toast.classList.add(
-    "show"
-  );
+  toast.classList.add("show");
 
 
   setTimeout(
     () => {
 
-      toast.classList.remove(
-        "show"
-      );
+      toast.classList.remove("show");
 
     },
     2000
@@ -1707,7 +1949,7 @@ function showToast(message){
    ESCAPE HTML
 ===================================================== */
 
-function escapeHtml(value){
+function escapeHtml(value) {
 
   return String(value)
 
@@ -1743,14 +1985,20 @@ function escapeHtml(value){
    SEARCH
 ===================================================== */
 
-document
-  .getElementById(
+const searchInput =
+  document.getElementById(
     "searchInput"
-  )
-  .addEventListener(
+  );
+
+
+if (searchInput) {
+
+  searchInput.addEventListener(
     "input",
     renderProducts
   );
+
+}
 
 
 /* =====================================================
@@ -1758,20 +2006,16 @@ document
 ===================================================== */
 
 document
-  .querySelectorAll(
-    ".category"
-  )
+  .querySelectorAll(".category")
   .forEach(
     button => {
 
       button.addEventListener(
         "click",
-        function(){
+        function () {
 
           document
-            .querySelectorAll(
-              ".category"
-            )
+            .querySelectorAll(".category")
             .forEach(
               b =>
                 b.classList.remove(
@@ -1808,89 +2052,99 @@ const themeBtn =
   );
 
 
-if(
+if (
   localStorage.getItem(
     "zolas-theme"
-  )
-  ===
-  "dark"
-){
+  ) === "dark"
+) {
 
   document.body.classList.add(
     "dark"
   );
 
-  themeBtn.textContent =
-    "☀️";
-
 }
 
 
-themeBtn.addEventListener(
-  "click",
-  () => {
+if (themeBtn) {
 
-    document.body.classList.toggle(
-      "dark"
-    );
+  themeBtn.addEventListener(
+    "click",
+    () => {
 
-
-    const dark =
-      document.body.classList.contains(
+      document.body.classList.toggle(
         "dark"
       );
 
 
-    themeBtn.textContent =
-      dark
-      ?
-      "☀️"
-      :
-      "🌙";
+      const dark =
+        document.body.classList.contains(
+          "dark"
+        );
 
 
-    localStorage.setItem(
-      "zolas-theme",
-      dark
-      ?
-      "dark"
-      :
-      "light"
-    );
+      localStorage.setItem(
+        "zolas-theme",
+        dark
+          ? "dark"
+          : "light"
+      );
 
-  }
-);
+
+      /*
+        Keep SVG icon.
+        CSS can handle the visual state.
+      */
+
+      themeBtn.classList.toggle(
+        "active",
+        dark
+      );
+
+    }
+  );
+
+}
 
 
 /* =====================================================
    CART BUTTON
 ===================================================== */
 
-document
-  .getElementById(
+const cartBtn =
+  document.getElementById(
     "cartBtn"
-  )
-  .addEventListener(
+  );
+
+
+if (cartBtn) {
+
+  cartBtn.addEventListener(
     "click",
     openCart
   );
+
+}
 
 
 /* =====================================================
    CART OVERLAY
 ===================================================== */
 
-document
-  .getElementById(
+const cartOverlay =
+  document.getElementById(
     "cartOverlay"
-  )
-  .addEventListener(
-    "click",
-    function(event){
+  );
 
-      if(
+
+if (cartOverlay) {
+
+  cartOverlay.addEventListener(
+    "click",
+    function (event) {
+
+      if (
         event.target === this
-      ){
+      ) {
 
         closeCart();
 
@@ -1899,22 +2153,28 @@ document
     }
   );
 
+}
+
 
 /* =====================================================
    PRODUCT MODAL OVERLAY
 ===================================================== */
 
-document
-  .getElementById(
+const productModal =
+  document.getElementById(
     "productModal"
-  )
-  .addEventListener(
-    "click",
-    function(event){
+  );
 
-      if(
+
+if (productModal) {
+
+  productModal.addEventListener(
+    "click",
+    function (event) {
+
+      if (
         event.target === this
-      ){
+      ) {
 
         closeProduct();
 
@@ -1923,22 +2183,28 @@ document
     }
   );
 
+}
+
 
 /* =====================================================
    CHECKOUT OVERLAY
 ===================================================== */
 
-document
-  .getElementById(
+const checkoutOverlay =
+  document.getElementById(
     "checkoutOverlay"
-  )
-  .addEventListener(
-    "click",
-    function(event){
+  );
 
-      if(
+
+if (checkoutOverlay) {
+
+  checkoutOverlay.addEventListener(
+    "click",
+    function (event) {
+
+      if (
         event.target === this
-      ){
+      ) {
 
         closeCheckout();
 
@@ -1947,19 +2213,27 @@ document
     }
   );
 
+}
+
 
 /* =====================================================
    SHIPPING
 ===================================================== */
 
-document
-  .getElementById(
+const shippingMethod =
+  document.getElementById(
     "shippingMethod"
-  )
-  .addEventListener(
+  );
+
+
+if (shippingMethod) {
+
+  shippingMethod.addEventListener(
     "change",
     updateCheckoutTotal
   );
+
+}
 
 
 /* =====================================================
@@ -1970,62 +2244,49 @@ document.addEventListener(
   "keydown",
   event => {
 
-    if(event.key !== "Escape")
+    if (event.key !== "Escape")
       return;
+
 
     closeProduct();
 
     closeCart();
-    
-   closeAuth();
+
+    closeAuth();
 
     closeCheckout();
 
   }
 );
 
-/* =====================================================
-   AUTHENTICATION
-   TEMPORARY LOCAL STORAGE VERSION
-   WILL BE REPLACED WITH FIREBASE AUTH
-===================================================== */
-
-let currentUser =
-  JSON.parse(
-    localStorage.getItem("zolas-user")
-  ) || null;
-
 
 /* =====================================================
-   AUTH ELEMENTS
+   AUTH
+   FIREBASE AUTHENTICATION
 ===================================================== */
-
-const authOverlay =
-  document.getElementById("authOverlay");
-
-const loginView =
-  document.getElementById("loginView");
-
-const registerView =
-  document.getElementById("registerView");
-
-const accountView =
-  document.getElementById("accountView");
 
 
 /* =====================================================
    OPEN LOGIN
 ===================================================== */
 
-function openLogin(){
+function openLogin() {
 
-  loginView.classList.remove("hidden");
+  loginView.classList.remove(
+    "hidden"
+  );
 
-  registerView.classList.add("hidden");
+  registerView.classList.add(
+    "hidden"
+  );
 
-  accountView.classList.add("hidden");
+  accountView.classList.add(
+    "hidden"
+  );
 
-  authOverlay.classList.add("show");
+  authOverlay.classList.add(
+    "show"
+  );
 
 }
 
@@ -2034,15 +2295,23 @@ function openLogin(){
    OPEN REGISTER
 ===================================================== */
 
-function openRegister(){
+function openRegister() {
 
-  loginView.classList.add("hidden");
+  loginView.classList.add(
+    "hidden"
+  );
 
-  registerView.classList.remove("hidden");
+  registerView.classList.remove(
+    "hidden"
+  );
 
-  accountView.classList.add("hidden");
+  accountView.classList.add(
+    "hidden"
+  );
 
-  authOverlay.classList.add("show");
+  authOverlay.classList.add(
+    "show"
+  );
 
 }
 
@@ -2051,9 +2320,9 @@ function openRegister(){
    ACCOUNT VIEW
 ===================================================== */
 
-function openAccount(){
+function openAccount() {
 
-  if(!currentUser){
+  if (!currentUser) {
 
     openLogin();
 
@@ -2062,26 +2331,57 @@ function openAccount(){
   }
 
 
-  loginView.classList.add("hidden");
+  loginView.classList.add(
+    "hidden"
+  );
 
-  registerView.classList.add("hidden");
+  registerView.classList.add(
+    "hidden"
+  );
 
-  accountView.classList.remove("hidden");
-
-
-  document.getElementById(
-    "accountName"
-  ).textContent =
-    "Hi, " + currentUser.name + "!";
-
-
-  document.getElementById(
-    "accountEmail"
-  ).textContent =
-    currentUser.email;
+  accountView.classList.remove(
+    "hidden"
+  );
 
 
-  authOverlay.classList.add("show");
+  const accountName =
+    document.getElementById(
+      "accountName"
+    );
+
+
+  const accountEmail =
+    document.getElementById(
+      "accountEmail"
+    );
+
+
+  const displayName =
+    currentUser.displayName ||
+    "Customer";
+
+
+  if (accountName) {
+
+    accountName.textContent =
+      "Hi, " +
+      displayName +
+      "!";
+
+  }
+
+
+  if (accountEmail) {
+
+    accountEmail.textContent =
+      currentUser.email || "";
+
+  }
+
+
+  authOverlay.classList.add(
+    "show"
+  );
 
 }
 
@@ -2090,115 +2390,32 @@ function openAccount(){
    CLOSE AUTH
 ===================================================== */
 
-function closeAuth(){
+function closeAuth() {
 
-  authOverlay.classList.remove("show");
+  if (!authOverlay) return;
+
+  authOverlay.classList.remove(
+    "show"
+  );
 
 }
 
 
 /* =====================================================
-   LOGIN
+   FIREBASE REGISTER
 ===================================================== */
 
-document
-  .getElementById("loginForm")
-  .addEventListener(
-    "submit",
-    function(event){
-
-      event.preventDefault();
-
-
-      const email =
-        document
-          .getElementById("loginEmail")
-          .value
-          .trim();
-
-      const password =
-        document
-          .getElementById("loginPassword")
-          .value;
-
-
-      const savedUser =
-        JSON.parse(
-          localStorage.getItem(
-            "zolas-account"
-          )
-        );
-
-
-      if(!savedUser){
-
-        showToast(
-          "Account not found. Please register first."
-        );
-
-        return;
-
-      }
-
-
-      if(
-        savedUser.email !== email ||
-        savedUser.password !== password
-      ){
-
-        showToast(
-          "Incorrect email or password."
-        );
-
-        return;
-
-      }
-
-
-      currentUser = {
-
-        name:savedUser.name,
-
-        email:savedUser.email
-
-      };
-
-
-      localStorage.setItem(
-        "zolas-user",
-        JSON.stringify(currentUser)
-      );
-
-
-      updateAuthUI();
-
-      closeAuth();
-
-
-      showToast(
-        "Welcome back, " +
-        currentUser.name +
-        "! ✨"
-      );
-
-
-      document
-        .getElementById("loginForm")
-        .reset();
-
-    }
+const registerForm =
+  document.getElementById(
+    "registerForm"
   );
 
 
-/* =====================================================
-   REGISTER
-===================================================== */
+if (registerForm) {
 
-document
-  .getElementById("registerForm")
-  .addEventListener(
+  registerForm.addEventListener(
     "submit",
-    function(event){
+    async function (event) {
 
       event.preventDefault();
 
@@ -2209,11 +2426,13 @@ document
           .value
           .trim();
 
+
       const email =
         document
           .getElementById("registerEmail")
           .value
           .trim();
+
 
       const password =
         document
@@ -2221,7 +2440,18 @@ document
           .value;
 
 
-      if(password.length < 6){
+      if (!name) {
+
+        showToast(
+          "Please enter your name."
+        );
+
+        return;
+
+      }
+
+
+      if (password.length < 6) {
 
         showToast(
           "Password must be at least 6 characters."
@@ -2232,93 +2462,399 @@ document
       }
 
 
-      const account = {
+      try {
 
-        name:name,
-
-        email:email,
-
-        password:password
-
-      };
-
-
-      localStorage.setItem(
-        "zolas-account",
-        JSON.stringify(account)
-      );
+        const userCredential =
+          await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
 
 
-      currentUser = {
-
-        name:name,
-
-        email:email
-
-      };
+        const user =
+          userCredential.user;
 
 
-      localStorage.setItem(
-        "zolas-user",
-        JSON.stringify(currentUser)
-      );
+        /*
+          Save display name
+          inside Firebase Auth
+        */
+
+        await updateProfile(
+          user,
+          {
+            displayName: name
+          }
+        );
 
 
-      updateAuthUI();
+        /*
+          Save customer profile
+          to Realtime Database
+        */
 
-      closeAuth();
+        await set(
+          ref(
+            database,
+            `users/${user.uid}/profile`
+          ),
+          {
+
+            uid:
+              user.uid,
+
+            name:
+              name,
+
+            email:
+              email,
+
+            createdAt:
+              new Date().toISOString()
+
+          }
+        );
 
 
-      showToast(
-        "Account created successfully! ✨"
-      );
+        showToast(
+          "Account created successfully! ✨"
+        );
 
 
-      document
-        .getElementById("registerForm")
-        .reset();
+        registerForm.reset();
+
+        closeAuth();
+
+
+      } catch (error) {
+
+        console.error(
+          "Registration error:",
+          error
+        );
+
+
+        handleFirebaseAuthError(
+          error
+        );
+
+      }
 
     }
   );
+
+}
 
 
 /* =====================================================
-   LOGOUT
+   FIREBASE LOGIN
 ===================================================== */
 
-document
-  .getElementById("logoutBtn")
-  .addEventListener(
-    "click",
-    function(){
-
-      currentUser = null;
+const loginForm =
+  document.getElementById(
+    "loginForm"
+  );
 
 
-      localStorage.removeItem(
-        "zolas-user"
-      );
+if (loginForm) {
+
+  loginForm.addEventListener(
+    "submit",
+    async function (event) {
+
+      event.preventDefault();
 
 
-      closeAuth();
+      const email =
+        document
+          .getElementById("loginEmail")
+          .value
+          .trim();
 
 
-      updateAuthUI();
+      const password =
+        document
+          .getElementById("loginPassword")
+          .value;
 
 
-      showToast(
-        "You have been signed out."
-      );
+      try {
+
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+
+        loginForm.reset();
+
+        closeAuth();
+
+
+        showToast(
+          "Welcome back! ✨"
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Login error:",
+          error
+        );
+
+
+        handleFirebaseAuthError(
+          error
+        );
+
+      }
 
     }
   );
+
+}
+
+
+/* =====================================================
+   GOOGLE LOGIN
+===================================================== */
+
+async function loginWithGoogle() {
+
+  try {
+
+    const result =
+      await signInWithPopup(
+        auth,
+        googleProvider
+      );
+
+
+    const user =
+      result.user;
+
+
+    /*
+      Check if profile already exists
+    */
+
+    const profileRef =
+      ref(
+        database,
+        `users/${user.uid}/profile`
+      );
+
+
+    const snapshot =
+      await get(profileRef);
+
+
+    if (!snapshot.exists()) {
+
+      await set(
+        profileRef,
+        {
+
+          uid:
+            user.uid,
+
+          name:
+            user.displayName ||
+            "Google Customer",
+
+          email:
+            user.email ||
+            "",
+
+          provider:
+            "google",
+
+          createdAt:
+            new Date().toISOString()
+
+        }
+      );
+
+    }
+
+
+    closeAuth();
+
+
+    showToast(
+      "Signed in with Google! ✨"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Google login error:",
+      error
+    );
+
+
+    handleFirebaseAuthError(
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   GOOGLE LOGIN BUTTON
+   OPTIONAL
+   If we add button later:
+   id="googleLoginBtn"
+===================================================== */
+
+const googleLoginBtn =
+  document.getElementById(
+    "googleLoginBtn"
+  );
+
+
+if (googleLoginBtn) {
+
+  googleLoginBtn.addEventListener(
+    "click",
+    loginWithGoogle
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE LOGOUT
+===================================================== */
+
+const logoutBtn =
+  document.getElementById(
+    "logoutBtn"
+  );
+
+
+if (logoutBtn) {
+
+  logoutBtn.addEventListener(
+    "click",
+    async function () {
+
+      try {
+
+        await signOut(auth);
+
+        closeAuth();
+
+
+        showToast(
+          "You have been signed out."
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Logout error:",
+          error
+        );
+
+
+        showToast(
+          "Unable to sign out."
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE AUTH STATE
+===================================================== */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+
+    currentUser = user || null;
+
+
+    updateAuthUI();
+
+
+    if (user) {
+
+      /*
+        Make sure customer profile exists
+      */
+
+      try {
+
+        const profileRef =
+          ref(
+            database,
+            `users/${user.uid}/profile`
+          );
+
+
+        const snapshot =
+          await get(profileRef);
+
+
+        if (!snapshot.exists()) {
+
+          await set(
+            profileRef,
+            {
+
+              uid:
+                user.uid,
+
+              name:
+                user.displayName ||
+                "Customer",
+
+              email:
+                user.email ||
+                "",
+
+              createdAt:
+                new Date().toISOString()
+
+            }
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Profile sync error:",
+          error
+        );
+
+      }
+
+    }
+
+  }
+);
 
 
 /* =====================================================
    AUTH UI
 ===================================================== */
 
-function updateAuthUI(){
+function updateAuthUI() {
 
   const profileBtn =
     document.getElementById(
@@ -2326,16 +2862,31 @@ function updateAuthUI(){
     );
 
 
-  if(currentUser){
+  if (!profileBtn)
+    return;
+
+
+  if (currentUser) {
 
     profileBtn.classList.add(
       "logged-in"
     );
 
-  }else{
+    profileBtn.setAttribute(
+      "title",
+      currentUser.displayName
+        ? currentUser.displayName
+        : currentUser.email
+    );
+
+  } else {
 
     profileBtn.classList.remove(
       "logged-in"
+    );
+
+    profileBtn.removeAttribute(
+      "title"
     );
 
   }
@@ -2347,54 +2898,245 @@ function updateAuthUI(){
    AUTH BUTTON EVENTS
 ===================================================== */
 
-document
-  .getElementById("profileBtn")
-  .addEventListener(
+const profileBtn =
+  document.getElementById(
+    "profileBtn"
+  );
+
+
+if (profileBtn) {
+
+  profileBtn.addEventListener(
     "click",
     openAccount
   );
 
+}
 
-document
-  .getElementById("authClose")
-  .addEventListener(
+
+const authClose =
+  document.getElementById(
+    "authClose"
+  );
+
+
+if (authClose) {
+
+  authClose.addEventListener(
     "click",
     closeAuth
   );
 
+}
 
-document
-  .getElementById("showRegister")
-  .addEventListener(
+
+const showRegister =
+  document.getElementById(
+    "showRegister"
+  );
+
+
+if (showRegister) {
+
+  showRegister.addEventListener(
     "click",
     openRegister
   );
 
+}
 
-document
-  .getElementById("showLogin")
-  .addEventListener(
+
+const showLogin =
+  document.getElementById(
+    "showLogin"
+  );
+
+
+if (showLogin) {
+
+  showLogin.addEventListener(
     "click",
     openLogin
   );
+
+}
 
 
 /* =====================================================
    AUTH OVERLAY
 ===================================================== */
 
-authOverlay.addEventListener(
-  "click",
-  function(event){
+if (authOverlay) {
 
-    if(event.target === this){
+  authOverlay.addEventListener(
+    "click",
+    function (event) {
 
-      closeAuth();
+      if (
+        event.target === this
+      ) {
+
+        closeAuth();
+
+      }
 
     }
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE AUTH ERROR HANDLER
+===================================================== */
+
+function handleFirebaseAuthError(
+  error
+) {
+
+  let message =
+    "Something went wrong. Please try again.";
+
+
+  switch (error.code) {
+
+    case "auth/email-already-in-use":
+
+      message =
+        "This email is already registered.";
+
+      break;
+
+
+    case "auth/invalid-email":
+
+      message =
+        "Please enter a valid email address.";
+
+      break;
+
+
+    case "auth/weak-password":
+
+      message =
+        "Password is too weak. Use at least 6 characters.";
+
+      break;
+
+
+    case "auth/user-not-found":
+
+      message =
+        "No account found with this email.";
+
+      break;
+
+
+    case "auth/wrong-password":
+
+      message =
+        "Incorrect password.";
+
+      break;
+
+
+    case "auth/invalid-credential":
+
+      message =
+        "Incorrect email or password.";
+
+      break;
+
+
+    case "auth/popup-closed-by-user":
+
+      message =
+        "Google sign-in was cancelled.";
+
+      break;
+
+
+    case "auth/popup-blocked":
+
+      message =
+        "Your browser blocked the Google sign-in popup.";
+
+      break;
+
+
+    case "auth/network-request-failed":
+
+      message =
+        "Network error. Please check your internet connection.";
+
+      break;
 
   }
-);
+
+
+  showToast(message);
+
+}
+
+
+/* =====================================================
+   GLOBAL FUNCTIONS
+   Needed because HTML uses onclick=""
+===================================================== */
+
+window.viewProduct =
+  viewProduct;
+
+window.closeProduct =
+  closeProduct;
+
+window.addToCart =
+  addToCart;
+
+window.changeProductQuantity =
+  changeProductQuantity;
+
+window.addSelectedProductToCart =
+  addSelectedProductToCart;
+
+window.changeQuantity =
+  changeQuantity;
+
+window.removeFromCart =
+  removeFromCart;
+
+window.closeCart =
+  closeCart;
+
+window.startCheckout =
+  startCheckout;
+
+window.closeCheckout =
+  closeCheckout;
+
+window.placeOrder =
+  placeOrder;
+
+window.finishOrder =
+  finishOrder;
+
+window.favoriteProduct =
+  favoriteProduct;
+
+window.goToHero =
+  goToHero;
+
+window.openLogin =
+  openLogin;
+
+window.openRegister =
+  openRegister;
+
+window.closeAuth =
+  closeAuth;
+
+window.loginWithGoogle =
+  loginWithGoogle;
 
 
 /* =====================================================
@@ -2408,5 +3150,7 @@ renderProducts();
 renderCart();
 
 updateCartCount();
+
+updateAuthUI();
 
 startHeroTimer();

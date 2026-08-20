@@ -2,7 +2,7 @@
    ZOLA'S CLOSET
    KIDS WEAR STORE
    FIREBASE VERSION
-   UPDATED PRODUCTION-READY FRONTEND
+   FULL PRODUCTION-READY FRONTEND
 ===================================================== */
 
 import {
@@ -23,8 +23,6 @@ import {
 
 /* =====================================================
    PRODUCT DATABASE
-   TEMPORARY FRONTEND DATA
-   LATER: FIREBASE / FIRESTORE
 ===================================================== */
 
 const products = [
@@ -174,11 +172,16 @@ let favorites =
 
 
 /* =====================================================
-   DOM HELPERS
+   DOM HELPER
 ===================================================== */
 
 const $ = id =>
   document.getElementById(id);
+
+
+/* =====================================================
+   AUTH ELEMENTS
+===================================================== */
 
 const authOverlay =
   $("authOverlay");
@@ -235,10 +238,105 @@ function loadLocalStorage(
 
 function saveFavorites() {
 
-  localStorage.setItem(
-    "zolas-favorites",
-    JSON.stringify(favorites)
-  );
+  try {
+
+    localStorage.setItem(
+      "zolas-favorites",
+      JSON.stringify(favorites)
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Unable to save favorites:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   SAVE CART
+===================================================== */
+
+function saveCart() {
+
+  normalizeCart();
+
+  try {
+
+    localStorage.setItem(
+      "zolas-cart",
+      JSON.stringify(cart)
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Unable to save cart:",
+      error
+    );
+
+  }
+
+  renderCart();
+  updateCartCount();
+
+}
+
+
+/* =====================================================
+   NORMALIZE CART
+===================================================== */
+
+function normalizeCart() {
+
+  if (!Array.isArray(cart)) {
+
+    cart = [];
+
+    return;
+
+  }
+
+
+  cart =
+    cart
+      .filter(item => {
+
+        if (!item)
+          return false;
+
+        const product =
+          products.find(
+            product =>
+              product.id ===
+              Number(item.id)
+          );
+
+        return (
+          product &&
+          Number(item.quantity) > 0
+        );
+
+      })
+      .map(item => ({
+
+        id:
+          Number(item.id),
+
+        quantity:
+          Math.min(
+            99,
+            Math.max(
+              1,
+              Number(item.quantity)
+            )
+          )
+
+      }));
 
 }
 
@@ -254,6 +352,7 @@ function renderHero() {
 
   const dots =
     $("heroDots");
+
 
   if (!track || !dots)
     return;
@@ -318,7 +417,6 @@ function renderHero() {
                   View Outfit →
 
                 </button>
-
 
                 <button
                   class="btn btn-secondary"
@@ -507,6 +605,10 @@ function previousHero() {
 
 function goToHero(index) {
 
+  index =
+    Number(index);
+
+
   if (
     index < 0 ||
     index >= featuredProducts.length
@@ -514,7 +616,8 @@ function goToHero(index) {
     return;
 
 
-  heroIndex = index;
+  heroIndex =
+    index;
 
   updateHero();
 
@@ -748,8 +851,7 @@ function renderProducts() {
                         L12 21.23
                         l7.78-7.78
                         1.06-1.06
-                        a5.5 5.5 0 0 0 0-7.78z
-                      ">
+                        a5.5 5.5 0 0 0 0-7.78z">
                     </path>
 
                   </svg>
@@ -839,6 +941,10 @@ function renderProducts() {
 
 function viewProduct(id) {
 
+  id =
+    Number(id);
+
+
   selectedProduct =
     products.find(
       product =>
@@ -846,8 +952,15 @@ function viewProduct(id) {
     );
 
 
-  if (!selectedProduct)
+  if (!selectedProduct) {
+
+    showToast(
+      "Product not found."
+    );
+
     return;
+
+  }
 
 
   selectedQuantity = 1;
@@ -859,8 +972,46 @@ function viewProduct(id) {
     $("productModal");
 
 
-  if (modal)
+  if (modal) {
+
     modal.classList.add("show");
+
+    document.body.classList.add(
+      "modal-open"
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   CLOSE PRODUCT
+===================================================== */
+
+function closeProduct() {
+
+  const modal =
+    $("productModal");
+
+
+  if (modal) {
+
+    modal.classList.remove(
+      "show"
+    );
+
+  }
+
+
+  document.body.classList.remove(
+    "modal-open"
+  );
+
+
+  selectedProduct = null;
+
+  selectedQuantity = 1;
 
 }
 
@@ -896,6 +1047,7 @@ function renderProductDetails() {
         <img
           src="${escapeHtml(product.image)}"
           alt="${escapeHtml(product.name)}"
+          onerror="this.style.display='none'"
         >
 
       </div>
@@ -1000,7 +1152,16 @@ function changeProductQuantity(
   amount
 ) {
 
-  selectedQuantity += amount;
+  amount =
+    Number(amount);
+
+
+  if (!Number.isFinite(amount))
+    return;
+
+
+  selectedQuantity +=
+    amount;
 
 
   if (selectedQuantity < 1)
@@ -1031,8 +1192,15 @@ function changeProductQuantity(
 
 function addSelectedProductToCart() {
 
-  if (!selectedProduct)
+  if (!selectedProduct) {
+
+    showToast(
+      "Please select a product first."
+    );
+
     return;
+
+  }
 
 
   const existing =
@@ -1045,8 +1213,12 @@ function addSelectedProductToCart() {
 
   if (existing) {
 
-    existing.quantity +=
-      selectedQuantity;
+    existing.quantity =
+      Math.min(
+        99,
+        existing.quantity +
+        selectedQuantity
+      );
 
   } else {
 
@@ -1062,8 +1234,6 @@ function addSelectedProductToCart() {
 
   }
 
-
-  normalizeCart();
 
   saveCart();
 
@@ -1083,76 +1253,19 @@ function addSelectedProductToCart() {
 
 
 /* =====================================================
-   NORMALIZE CART
-===================================================== */
-
-function normalizeCart() {
-
-  cart =
-    cart
-      .filter(item => {
-
-        const product =
-          products.find(
-            p => p.id === item.id
-          );
-
-        return (
-          product &&
-          Number(item.quantity) > 0
-        );
-
-      })
-      .map(item => ({
-
-        id:
-          item.id,
-
-        quantity:
-          Math.min(
-            99,
-            Math.max(
-              1,
-              Number(item.quantity)
-            )
-          )
-
-      }));
-
-}
-
-
-/* =====================================================
-   SAVE CART
-===================================================== */
-
-function saveCart() {
-
-  normalizeCart();
-
-
-  localStorage.setItem(
-    "zolas-cart",
-    JSON.stringify(cart)
-  );
-
-
-  renderCart();
-
-  updateCartCount();
-
-}
-
-
-/* =====================================================
    ADD TO CART
 ===================================================== */
 
 function addToCart(id) {
 
+  id =
+    Number(id);
+
+
   const product =
     products.find(
-      p => p.id === id
+      p =>
+        p.id === id
     );
 
 
@@ -1222,7 +1335,10 @@ function updateCartCount() {
   const count =
     cart.reduce(
       (sum, item) =>
-        sum + Number(item.quantity || 0),
+        sum +
+        Number(
+          item.quantity || 0
+        ),
       0
     );
 
@@ -1251,6 +1367,7 @@ function renderCart() {
 
   const container =
     $("cartItems");
+
 
   if (!container)
     return;
@@ -1333,6 +1450,7 @@ function renderCart() {
                   src="${escapeHtml(product.image)}"
                   alt="${escapeHtml(product.name)}"
                   loading="lazy"
+                  onerror="this.style.display='none'"
                 >
 
               </div>
@@ -1415,7 +1533,7 @@ function renderCart() {
 
 
 /* =====================================================
-   CART QUANTITY
+   CHANGE CART QUANTITY
 ===================================================== */
 
 function changeQuantity(
@@ -1423,9 +1541,17 @@ function changeQuantity(
   amount
 ) {
 
+  id =
+    Number(id);
+
+  amount =
+    Number(amount);
+
+
   const item =
     cart.find(
-      i => i.id === id
+      i =>
+        i.id === id
     );
 
 
@@ -1433,14 +1559,16 @@ function changeQuantity(
     return;
 
 
-  item.quantity += amount;
+  item.quantity +=
+    amount;
 
 
   if (item.quantity <= 0) {
 
     cart =
       cart.filter(
-        i => i.id !== id
+        i =>
+          i.id !== id
       );
 
   }
@@ -1468,9 +1596,14 @@ function changeQuantity(
 
 function removeFromCart(id) {
 
+  id =
+    Number(id);
+
+
   const product =
     products.find(
-      p => p.id === id
+      p =>
+        p.id === id
     );
 
 
@@ -1507,7 +1640,9 @@ function openCart() {
 
 
   if (overlay)
-    overlay.classList.add("show");
+    overlay.classList.add(
+      "show"
+    );
 
 }
 
@@ -1523,7 +1658,9 @@ function closeCart() {
 
 
   if (overlay)
-    overlay.classList.remove("show");
+    overlay.classList.remove(
+      "show"
+    );
 
 }
 
@@ -1533,6 +1670,9 @@ function closeCart() {
 ===================================================== */
 
 function startCheckout() {
+
+  normalizeCart();
+
 
   if (!cart.length) {
 
@@ -1571,7 +1711,9 @@ function startCheckout() {
 
 
   if (overlay)
-    overlay.classList.add("show");
+    overlay.classList.add(
+      "show"
+    );
 
 }
 
@@ -1587,7 +1729,9 @@ function closeCheckout() {
 
 
   if (overlay)
-    overlay.classList.remove("show");
+    overlay.classList.remove(
+      "show"
+    );
 
 }
 
@@ -1604,6 +1748,9 @@ function renderCheckout() {
 
   if (!container)
     return;
+
+
+  normalizeCart();
 
 
   let subtotal = 0;
@@ -1667,10 +1814,6 @@ function renderCheckout() {
 
   }
 
-
-  /* =================================================
-     AUTO-FILL USER INFORMATION
-  ================================================= */
 
   const customerEmail =
     $("customerEmail");
@@ -1745,7 +1888,9 @@ function updateCheckoutTotal() {
 
   const shipping =
     shippingElement
-      ? Number(shippingElement.value || 0)
+      ? Number(
+          shippingElement.value || 0
+        )
       : 0;
 
 
@@ -1805,6 +1950,9 @@ async function placeOrder() {
     return;
 
   }
+
+
+  normalizeCart();
 
 
   if (!cart.length) {
@@ -2037,12 +2185,10 @@ async function placeOrder() {
 
     isPlacingOrder = true;
 
-    setCheckoutButtonLoading(true);
+    setCheckoutButtonLoading(
+      true
+    );
 
-
-    /* =================================================
-       SAVE COMPLETE ORDER
-    ================================================= */
 
     const orderRef =
       ref(
@@ -2056,10 +2202,6 @@ async function placeOrder() {
       orderData
     );
 
-
-    /* =================================================
-       SAVE ORDER SUMMARY
-    ================================================= */
 
     const userOrderRef =
       ref(
@@ -2109,7 +2251,9 @@ async function placeOrder() {
 
     isPlacingOrder = false;
 
-    setCheckoutButtonLoading(false);
+    setCheckoutButtonLoading(
+      false
+    );
 
   }
 
@@ -2137,7 +2281,9 @@ function setCheckoutButtonLoading(
 
         button.disabled = true;
 
-        if (!button.dataset.originalText) {
+        if (
+          !button.dataset.originalText
+        ) {
 
           button.dataset.originalText =
             button.textContent;
@@ -2151,7 +2297,9 @@ function setCheckoutButtonLoading(
 
         button.disabled = false;
 
-        if (button.dataset.originalText) {
+        if (
+          button.dataset.originalText
+        ) {
 
           button.textContent =
             button.dataset.originalText;
@@ -2268,6 +2416,10 @@ function favoriteProduct(
   productId
 ) {
 
+  productId =
+    Number(productId);
+
+
   const index =
     favorites.indexOf(
       productId
@@ -2280,27 +2432,32 @@ function favoriteProduct(
       productId
     );
 
-    button.classList.add(
-      "active"
-    );
 
+    if (button) {
 
-    button.setAttribute(
-      "aria-label",
-      "Remove from favorites"
-    );
-
-
-    const svg =
-      button.querySelector("svg");
-
-
-    if (svg) {
-
-      svg.setAttribute(
-        "fill",
-        "currentColor"
+      button.classList.add(
+        "active"
       );
+
+
+      button.setAttribute(
+        "aria-label",
+        "Remove from favorites"
+      );
+
+
+      const svg =
+        button.querySelector("svg");
+
+
+      if (svg) {
+
+        svg.setAttribute(
+          "fill",
+          "currentColor"
+        );
+
+      }
 
     }
 
@@ -2316,27 +2473,32 @@ function favoriteProduct(
       1
     );
 
-    button.classList.remove(
-      "active"
-    );
 
+    if (button) {
 
-    button.setAttribute(
-      "aria-label",
-      "Add to favorites"
-    );
-
-
-    const svg =
-      button.querySelector("svg");
-
-
-    if (svg) {
-
-      svg.setAttribute(
-        "fill",
-        "none"
+      button.classList.remove(
+        "active"
       );
+
+
+      button.setAttribute(
+        "aria-label",
+        "Add to favorites"
+      );
+
+
+      const svg =
+        button.querySelector("svg");
+
+
+      if (svg) {
+
+        svg.setAttribute(
+          "fill",
+          "none"
+        );
+
+      }
 
     }
 
@@ -2366,8 +2528,16 @@ function showToast(message) {
     $("toast");
 
 
-  if (!toast)
+  if (!toast) {
+
+    console.log(
+      "Toast:",
+      message
+    );
+
     return;
+
+  }
 
 
   toast.textContent =
@@ -2387,7 +2557,9 @@ function showToast(message) {
   );
 
 
-  clearTimeout(toastTimer);
+  clearTimeout(
+    toastTimer
+  );
 
 
   toastTimer =
@@ -2411,7 +2583,9 @@ function showToast(message) {
 
 function escapeHtml(value) {
 
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
 
     .replace(
       /&/g,
@@ -2716,7 +2890,6 @@ document.addEventListener(
    AUTH
 ===================================================== */
 
-
 /* =====================================================
    OPEN LOGIN
 ===================================================== */
@@ -2741,10 +2914,13 @@ function openLogin() {
     );
 
 
-  if (authOverlay)
+  if (authOverlay) {
+
     authOverlay.classList.add(
       "show"
     );
+
+  }
 
 }
 
@@ -2773,10 +2949,13 @@ function openRegister() {
     );
 
 
-  if (authOverlay)
+  if (authOverlay) {
+
     authOverlay.classList.add(
       "show"
     );
+
+  }
 
 }
 
@@ -2817,7 +2996,6 @@ function openAccount() {
   const accountName =
     $("accountName");
 
-
   const accountEmail =
     $("accountEmail");
 
@@ -2840,15 +3018,19 @@ function openAccount() {
   if (accountEmail) {
 
     accountEmail.textContent =
-      currentUser.email || "";
+      currentUser.email ||
+      "";
 
   }
 
 
-  if (authOverlay)
+  if (authOverlay) {
+
     authOverlay.classList.add(
       "show"
     );
+
+  }
 
 }
 
@@ -2897,6 +3079,12 @@ if (registerForm) {
         $("registerPassword");
 
 
+      const submitButton =
+        registerForm.querySelector(
+          "button[type='submit']"
+        );
+
+
       const name =
         nameElement
           ? nameElement.value.trim()
@@ -2913,11 +3101,18 @@ if (registerForm) {
           : "";
 
 
+      /* ================================================
+         VALIDATION
+      ================================================ */
+
       if (!name) {
 
         showToast(
           "Please enter your name."
         );
+
+        if (nameElement)
+          nameElement.focus();
 
         return;
 
@@ -2928,6 +3123,23 @@ if (registerForm) {
 
         showToast(
           "Please enter your email."
+        );
+
+        if (emailElement)
+          emailElement.focus();
+
+        return;
+
+      }
+
+
+      if (
+        !email.includes("@") ||
+        !email.includes(".")
+      ) {
+
+        showToast(
+          "Please enter a valid email address."
         );
 
         return;
@@ -2941,12 +3153,30 @@ if (registerForm) {
           "Password must be at least 6 characters."
         );
 
+        if (passwordElement)
+          passwordElement.focus();
+
         return;
 
       }
 
 
+      /* ================================================
+         LOADING
+      ================================================ */
+
+      setAuthButtonLoading(
+        submitButton,
+        true,
+        "Creating account..."
+      );
+
+
       try {
+
+        /* ================================================
+           CREATE ACCOUNT
+        ================================================ */
 
         const userCredential =
           await createUserWithEmailAndPassword(
@@ -2960,6 +3190,10 @@ if (registerForm) {
           userCredential.user;
 
 
+        /* ================================================
+           UPDATE FIREBASE PROFILE
+        ================================================ */
+
         await updateProfile(
           user,
           {
@@ -2968,6 +3202,10 @@ if (registerForm) {
           }
         );
 
+
+        /* ================================================
+           SAVE PROFILE TO DATABASE
+        ================================================ */
 
         await set(
           ref(
@@ -2995,7 +3233,12 @@ if (registerForm) {
         );
 
 
+        /* ================================================
+           RESET FORM
+        ================================================ */
+
         registerForm.reset();
+
 
         closeAuth();
 
@@ -3015,6 +3258,14 @@ if (registerForm) {
 
         handleFirebaseAuthError(
           error
+        );
+
+
+      } finally {
+
+        setAuthButtonLoading(
+          submitButton,
+          false
         );
 
       }
@@ -3049,6 +3300,12 @@ if (loginForm) {
         $("loginPassword");
 
 
+      const submitButton =
+        loginForm.querySelector(
+          "button[type='submit']"
+        );
+
+
       const email =
         emailElement
           ? emailElement.value.trim()
@@ -3060,10 +3317,45 @@ if (loginForm) {
           : "";
 
 
-      if (!email || !password) {
+      /* ================================================
+         VALIDATION
+      ================================================ */
+
+      if (!email) {
 
         showToast(
-          "Please enter your email and password."
+          "Please enter your email."
+        );
+
+        if (emailElement)
+          emailElement.focus();
+
+        return;
+
+      }
+
+
+      if (!password) {
+
+        showToast(
+          "Please enter your password."
+        );
+
+        if (passwordElement)
+          passwordElement.focus();
+
+        return;
+
+      }
+
+
+      if (
+        !email.includes("@") ||
+        !email.includes(".")
+      ) {
+
+        showToast(
+          "Please enter a valid email address."
         );
 
         return;
@@ -3071,14 +3363,82 @@ if (loginForm) {
       }
 
 
+      /* ================================================
+         LOADING
+      ================================================ */
+
+      setAuthButtonLoading(
+        submitButton,
+        true,
+        "Signing in..."
+      );
+
+
       try {
 
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        /* ================================================
+           FIREBASE LOGIN
+        ================================================ */
 
+        const userCredential =
+          await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+
+        const user =
+          userCredential.user;
+
+
+        /* ================================================
+           PROFILE SYNC
+        ================================================ */
+
+        const profileRef =
+          ref(
+            database,
+            `users/${user.uid}/profile`
+          );
+
+
+        const snapshot =
+          await get(profileRef);
+
+
+        if (!snapshot.exists()) {
+
+          await set(
+            profileRef,
+            {
+
+              uid:
+                user.uid,
+
+              name:
+                user.displayName ||
+                "Customer",
+
+              email:
+                user.email ||
+                email,
+
+              provider:
+                "password",
+
+              createdAt:
+                new Date().toISOString()
+
+            }
+          );
+
+        }
+
+
+        /* ================================================
+           SUCCESS
+        ================================================ */
 
         loginForm.reset();
 
@@ -3086,7 +3446,9 @@ if (loginForm) {
 
 
         showToast(
-          "Welcome back! ✨"
+          user.displayName
+            ? `Welcome back, ${user.displayName}! ✨`
+            : "Welcome back! ✨"
         );
 
 
@@ -3102,10 +3464,67 @@ if (loginForm) {
           error
         );
 
+
+      } finally {
+
+        setAuthButtonLoading(
+          submitButton,
+          false
+        );
+
       }
 
     }
   );
+
+}
+
+
+/* =====================================================
+   AUTH BUTTON LOADING
+===================================================== */
+
+function setAuthButtonLoading(
+  button,
+  loading,
+  loadingText = "Loading..."
+) {
+
+  if (!button)
+    return;
+
+
+  if (loading) {
+
+    button.disabled = true;
+
+
+    if (
+      !button.dataset.originalText
+    ) {
+
+      button.dataset.originalText =
+        button.textContent;
+
+    }
+
+
+    button.textContent =
+      loadingText;
+
+  } else {
+
+    button.disabled = false;
+
+
+    button.textContent =
+      button.dataset.originalText ||
+      "Continue";
+
+
+    delete button.dataset.originalText;
+
+  }
 
 }
 
@@ -3116,7 +3535,29 @@ if (loginForm) {
 
 async function loginWithGoogle() {
 
+  const googleButton =
+    $("googleLoginBtn");
+
+
+  if (googleButton) {
+
+    googleButton.disabled =
+      true;
+
+    googleButton.dataset.originalText =
+      googleButton.textContent;
+
+    googleButton.textContent =
+      "Signing in...";
+
+  }
+
+
   try {
+
+    /* ================================================
+       GOOGLE AUTH
+    ================================================ */
 
     const result =
       await signInWithPopup(
@@ -3128,6 +3569,10 @@ async function loginWithGoogle() {
     const user =
       result.user;
 
+
+    /* ================================================
+       DATABASE PROFILE
+    ================================================ */
 
     const profileRef =
       ref(
@@ -3160,8 +3605,52 @@ async function loginWithGoogle() {
           provider:
             "google",
 
+          photoURL:
+            user.photoURL ||
+            "",
+
           createdAt:
             new Date().toISOString()
+
+        }
+      );
+
+    } else {
+
+      /* ================================================
+         UPDATE GOOGLE PROFILE INFO
+      ================================================ */
+
+      const existingProfile =
+        snapshot.val() || {};
+
+
+      await set(
+        profileRef,
+        {
+
+          ...existingProfile,
+
+          uid:
+            user.uid,
+
+          name:
+            user.displayName ||
+            existingProfile.name ||
+            "Google Customer",
+
+          email:
+            user.email ||
+            existingProfile.email ||
+            "",
+
+          provider:
+            "google",
+
+          photoURL:
+            user.photoURL ||
+            existingProfile.photoURL ||
+            ""
 
         }
       );
@@ -3188,6 +3677,22 @@ async function loginWithGoogle() {
     handleFirebaseAuthError(
       error
     );
+
+
+  } finally {
+
+    if (googleButton) {
+
+      googleButton.disabled =
+        false;
+
+      googleButton.textContent =
+        googleButton.dataset.originalText ||
+        "Continue with Google";
+
+      delete googleButton.dataset.originalText;
+
+    }
 
   }
 
@@ -3226,9 +3731,23 @@ if (logoutBtn) {
     "click",
     async function () {
 
+      if (!currentUser) {
+
+        closeAuth();
+
+        return;
+
+      }
+
+
+      logoutBtn.disabled =
+        true;
+
+
       try {
 
         await signOut(auth);
+
 
         closeAuth();
 
@@ -3247,8 +3766,14 @@ if (logoutBtn) {
 
 
         showToast(
-          "Unable to sign out."
+          getFirebaseErrorMessage(error)
         );
+
+
+      } finally {
+
+        logoutBtn.disabled =
+          false;
 
       }
 
@@ -3311,6 +3836,10 @@ onAuthStateChanged(
               user.providerData?.[0]?.providerId ||
               "unknown",
 
+            photoURL:
+              user.photoURL ||
+              "",
+
             createdAt:
               new Date().toISOString()
 
@@ -3318,6 +3847,10 @@ onAuthStateChanged(
         );
 
       }
+
+
+      updateAuthUI();
+
 
     } catch (error) {
 
@@ -3366,6 +3899,10 @@ function updateAuthUI() {
       "Open my account"
     );
 
+
+    profileBtn.dataset.loggedIn =
+      "true";
+
   } else {
 
     profileBtn.classList.remove(
@@ -3382,6 +3919,10 @@ function updateAuthUI() {
       "aria-label",
       "Sign in"
     );
+
+
+    profileBtn.dataset.loggedIn =
+      "false";
 
   }
 
@@ -3407,7 +3948,7 @@ if (profileBtn) {
 
 
 /* =====================================================
-   AUTH CLOSE
+   AUTH CLOSE BUTTON
 ===================================================== */
 
 const authClose =
@@ -3497,12 +4038,18 @@ if (authOverlay) {
 
 
 /* =====================================================
-   FIREBASE ERROR HANDLER
+   FIREBASE AUTH ERROR HANDLER
 ===================================================== */
 
 function handleFirebaseAuthError(
   error
 ) {
+
+  console.error(
+    "Firebase authentication error:",
+    error
+  );
+
 
   showToast(
     getFirebaseErrorMessage(error)
@@ -3519,70 +4066,141 @@ function getFirebaseErrorMessage(
   error
 ) {
 
-  if (!error)
-    return "Something went wrong.";
+  if (!error) {
+
+    return (
+      "Something went wrong. Please try again."
+    );
+
+  }
 
 
   switch (error.code) {
 
     case "auth/email-already-in-use":
 
-      return "This email is already registered.";
+      return (
+        "This email is already registered."
+      );
 
 
     case "auth/invalid-email":
 
-      return "Please enter a valid email address.";
+      return (
+        "Please enter a valid email address."
+      );
 
 
     case "auth/weak-password":
 
-      return "Password is too weak. Use at least 6 characters.";
+      return (
+        "Password is too weak. Use at least 6 characters."
+      );
 
 
     case "auth/user-not-found":
 
-      return "No account found with this email.";
+      return (
+        "No account found with this email."
+      );
 
 
     case "auth/wrong-password":
 
-      return "Incorrect password.";
+      return (
+        "Incorrect password."
+      );
 
 
     case "auth/invalid-credential":
 
-      return "Incorrect email or password.";
+      return (
+        "Incorrect email or password."
+      );
+
+
+    case "auth/invalid-login-credentials":
+
+      return (
+        "Incorrect email or password."
+      );
 
 
     case "auth/popup-closed-by-user":
 
-      return "Google sign-in was cancelled.";
+      return (
+        "Google sign-in was cancelled."
+      );
 
 
     case "auth/popup-blocked":
 
-      return "Your browser blocked the Google sign-in popup.";
+      return (
+        "Your browser blocked the Google sign-in popup."
+      );
+
+
+    case "auth/cancelled-popup-request":
+
+      return (
+        "Google sign-in was cancelled."
+      );
 
 
     case "auth/network-request-failed":
 
-      return "Network error. Please check your internet connection.";
+      return (
+        "Network error. Please check your internet connection."
+      );
 
 
     case "auth/too-many-requests":
 
-      return "Too many attempts. Please try again later.";
+      return (
+        "Too many attempts. Please try again later."
+      );
 
 
     case "auth/user-disabled":
 
-      return "This account has been disabled.";
+      return (
+        "This account has been disabled."
+      );
 
 
     case "auth/operation-not-allowed":
 
-      return "This sign-in method is currently unavailable.";
+      return (
+        "This sign-in method is currently unavailable."
+      );
+
+
+    case "auth/account-exists-with-different-credential":
+
+      return (
+        "An account already exists with this email using another sign-in method."
+      );
+
+
+    case "auth/requires-recent-login":
+
+      return (
+        "Please sign in again before continuing."
+      );
+
+
+    case "auth/credential-already-in-use":
+
+      return (
+        "This account is already connected to another user."
+      );
+
+
+    case "auth/timeout":
+
+      return (
+        "The request timed out. Please try again."
+      );
 
 
     default:
@@ -3650,6 +4268,9 @@ window.openLogin =
 window.openRegister =
   openRegister;
 
+window.openAccount =
+  openAccount;
+
 window.closeAuth =
   closeAuth;
 
@@ -3662,6 +4283,10 @@ window.loginWithGoogle =
 ===================================================== */
 
 normalizeCart();
+
+saveCart();
+
+saveFavorites();
 
 renderHero();
 
@@ -3682,6 +4307,10 @@ startHeroTimer();
 
 console.log(
   "🎀 Zola's Closet initialized successfully."
+);
+
+console.log(
+  "🔥 Firebase authentication connected."
 );
 
 console.log(

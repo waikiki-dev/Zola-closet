@@ -2,7 +2,7 @@
    ZOLA'S CLOSET
    KIDS WEAR STORE
    FIREBASE VERSION
-   FULLY UPDATED FRONTEND
+   PRODUCTS + AUTH + CART + CHECKOUT
 ===================================================== */
 
 import {
@@ -23,12 +23,14 @@ import {
 
 
 /* =====================================================
-   PRODUCT DATABASE
+   PRODUCTS
+   Loaded dynamically from Firebase Realtime Database
 ===================================================== */
 
 let products = [];
-
 let featuredProducts = [];
+
+let productsLoaded = false;
 
 
 /* =====================================================
@@ -36,142 +38,33 @@ let featuredProducts = [];
 ===================================================== */
 
 let heroIndex = 0;
-
 let heroTimer = null;
 
 let currentCategory = "all";
 
 let selectedProduct = null;
-
 let selectedQuantity = 1;
 
 let currentUser = null;
 
 let isPlacingOrder = false;
 
-/* =====================================================
-   FIREBASE PRODUCTS
-===================================================== */
-
-function loadProductsFromFirebase() {
-
-  const productsRef =
-    ref(database, "products");
-
-  onValue(
-    productsRef,
-    snapshot => {
-
-      const data = snapshot.val();
-
-      if (!data) {
-
-        products = [];
-        featuredProducts = [];
-
-        renderProducts();
-        renderHero();
-        renderCart();
-        updateCartCount();
-
-        return;
-
-      }
-
-      products =
-        Object.entries(data).map(
-          ([id, product]) => ({
-
-            id,
-
-            name:
-              product.name || "Unnamed Product",
-
-            category:
-              product.category || "all",
-
-            price:
-              Number(product.price || 0),
-
-            oldPrice:
-              Number(product.oldPrice || 0),
-
-            discount:
-              Number(product.discount || 0),
-
-            rating:
-              Number(product.rating || 0),
-
-            image:
-              product.image || "",
-
-            description:
-              product.description || "",
-
-            featured:
-              product.featured === true,
-
-            stock:
-              Number(product.stock || 0)
-
-          })
-        );
-
-
-      featuredProducts =
-        products.filter(
-          product =>
-            product.featured === true
-        );
-
-
-      console.log(
-        "🔥 Products loaded:",
-        products
-      );
-
-
-      renderProducts();
-
-      renderHero();
-
-      renderCart();
-
-      updateCartCount();
-
-      startHeroTimer();
-
-    },
-
-    error => {
-
-      console.error(
-        "Firebase products error:",
-        error
-      );
-
-      showToast(
-        "Unable to load products."
-      );
-
-    }
-  );
-
-}
 
 /* =====================================================
    LOCAL STORAGE
 ===================================================== */
 
-let cart = loadLocalStorage(
-  "zolas-cart",
-  []
-);
+let cart =
+  loadLocalStorage(
+    "zolas-cart",
+    []
+  );
 
-let favorites = loadLocalStorage(
-  "zolas-favorites",
-  []
-);
+let favorites =
+  loadLocalStorage(
+    "zolas-favorites",
+    []
+  );
 
 
 /* =====================================================
@@ -213,9 +106,8 @@ function loadLocalStorage(
     const value =
       localStorage.getItem(key);
 
-    if (!value) {
+    if (!value)
       return fallback;
-    }
 
     const parsed =
       JSON.parse(value);
@@ -237,26 +129,215 @@ function loadLocalStorage(
 
 
 /* =====================================================
-   FAVORITES
+   SAVE FAVORITES
 ===================================================== */
 
 function saveFavorites() {
 
-  try {
+  localStorage.setItem(
+    "zolas-favorites",
+    JSON.stringify(favorites)
+  );
 
-    localStorage.setItem(
-      "zolas-favorites",
-      JSON.stringify(favorites)
+}
+
+
+/* =====================================================
+   FIREBASE PRODUCTS
+===================================================== */
+
+function loadProductsFromFirebase() {
+
+  const productsRef =
+    ref(
+      database,
+      "products"
     );
 
-  } catch (error) {
 
-    console.warn(
-      "Unable to save favorites:",
-      error
-    );
+  onValue(
+    productsRef,
+    snapshot => {
 
-  }
+      const data =
+        snapshot.val();
+
+
+      if (!data) {
+
+        products = [];
+
+        featuredProducts = [];
+
+        productsLoaded = true;
+
+        renderProducts();
+        renderHero();
+        renderCart();
+        updateCartCount();
+
+        return;
+
+      }
+
+
+      products =
+        Object.entries(data)
+          .map(
+            ([id, product]) => ({
+
+              id:
+
+                String(id),
+
+              name:
+
+                product?.name ||
+                "Unnamed Product",
+
+              category:
+
+                String(
+                  product?.category ||
+                  "all"
+                ).toLowerCase(),
+
+              price:
+
+                Number(
+                  product?.price || 0
+                ),
+
+              oldPrice:
+
+                Number(
+                  product?.oldPrice || 0
+                ),
+
+              discount:
+
+                Number(
+                  product?.discount || 0
+                ),
+
+              rating:
+
+                Number(
+                  product?.rating || 0
+                ),
+
+              image:
+
+                product?.image ||
+                "",
+
+              description:
+
+                product?.description ||
+                "",
+
+              featured:
+
+                product?.featured === true,
+
+              stock:
+
+                Math.max(
+                  0,
+                  Number(
+                    product?.stock || 0
+                  )
+                )
+
+            })
+          );
+
+
+      featuredProducts =
+        products.filter(
+          product =>
+            product.featured === true &&
+            product.stock > 0
+        );
+
+
+      productsLoaded = true;
+
+
+      /*
+        Remove cart items for products
+        that no longer exist in Firebase.
+      */
+
+      normalizeCart();
+
+
+      console.log(
+        "🔥 Firebase products loaded:",
+        products
+      );
+
+
+      renderProducts();
+
+      renderHero();
+
+      renderCart();
+
+      updateCartCount();
+
+      heroIndex = 0;
+
+      startHeroTimer();
+
+    },
+
+    error => {
+
+      console.error(
+        "Firebase products error:",
+        error
+      );
+
+
+      productsLoaded = false;
+
+
+      const container =
+        $("products");
+
+
+      if (container) {
+
+        container.innerHTML = `
+
+          <div class="no-results">
+
+            <div style="font-size:42px;">
+              ⚠️
+            </div>
+
+            <h3>
+              Unable to load products
+            </h3>
+
+            <p>
+              Please refresh the page and try again.
+            </p>
+
+          </div>
+
+        `;
+
+      }
+
+
+      showToast(
+        "Unable to load products."
+      );
+
+    }
+  );
 
 }
 
@@ -273,24 +354,134 @@ function renderHero() {
   const dots =
     $("heroDots");
 
-  if (!track || !dots) {
+
+  if (!track || !dots)
     return;
-  }
 
 
-  if (!featuredProducts.length) {
+  /*
+    Loading state
+  */
+
+  if (!productsLoaded) {
+
+    track.innerHTML = `
+
+      <div class="hero-slide">
+
+        <div class="hero-product-visual">
+
+          <div class="hero-product-circle">
+
+            <div
+              style="
+                font-size:52px;
+                animation:zolaPulse 1.5s infinite;
+              "
+            >
+              🎀
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-slide-content">
+
+          <div class="hero-mini-label">
+            🎀 ZOLA'S CLOSET
+          </div>
+
+          <h1>
+            Loading cute
+            <span>little looks...</span>
+          </h1>
+
+          <p>
+            We're getting our collection ready for you.
+          </p>
+
+        </div>
+
+      </div>
+
+    `;
 
     dots.innerHTML = "";
 
-    /*
-      Do NOT destroy hero structure
-      if there are no Firebase products.
-    */
+    return;
+
+  }
+
+
+  /*
+    No featured products
+  */
+
+  if (!featuredProducts.length) {
+
+    track.innerHTML = `
+
+      <div class="hero-slide">
+
+        <div class="hero-product-visual">
+
+          <div class="hero-product-circle">
+
+            <div style="font-size:52px;">
+              🎀
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-slide-content">
+
+          <div class="hero-mini-label">
+            🎀 ZOLA'S CLOSET
+          </div>
+
+          <h1>
+            Little Looks.
+            <span>Big Style.</span>
+          </h1>
+
+          <p>
+            Discover cute and comfortable outfits
+            made for little ones.
+          </p>
+
+          <div class="hero-slide-actions">
+
+            <a
+              href="#shop"
+              class="btn btn-primary">
+
+              Shop Now →
+
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    dots.innerHTML = "";
 
     return;
 
   }
 
+
+  /*
+    Featured products
+  */
 
   track.innerHTML =
     featuredProducts
@@ -306,20 +497,17 @@ function renderHero() {
                 <img
                   src="${escapeHtml(product.image)}"
                   alt="${escapeHtml(product.name)}"
-                  loading="${
-                    index === 0
-                      ? "eager"
-                      : "lazy"
-                  }"
+                  loading="${index === 0 ? "eager" : "lazy"}"
                   onerror="this.style.display='none'"
                 >
 
               </div>
 
+
               <div class="hero-discount-badge">
 
                 <strong>
-                  -${Number(product.discount) || 0}%
+                  -${product.discount}%
                 </strong>
 
                 <span>
@@ -337,21 +525,22 @@ function renderHero() {
                 🎀 ZOLA'S PICK
               </div>
 
+
               <h1>
                 ${getHeroTitle(product, index)}
               </h1>
 
+
               <p>
-                ${escapeHtml(
-                  product.description || ""
-                )}
+                ${escapeHtml(product.description)}
               </p>
+
 
               <div class="hero-slide-actions">
 
                 <button
                   class="btn btn-primary"
-                  onclick="viewProduct(${product.id})"
+                  onclick="viewProduct('${escapeJs(product.id)}')"
                   type="button">
 
                   View Outfit →
@@ -361,7 +550,7 @@ function renderHero() {
 
                 <button
                   class="btn btn-secondary"
-                  onclick="addToCart(${product.id})"
+                  onclick="addToCart('${escapeJs(product.id)}')"
                   type="button">
 
                   🛍️ Add to Bag
@@ -387,16 +576,10 @@ function renderHero() {
           <button
             class="
               hero-dot
-              ${
-                index === heroIndex
-                  ? "active"
-                  : ""
-              }
+              ${index === heroIndex ? "active" : ""}
             "
             onclick="goToHero(${index})"
-            aria-label="
-              Go to featured product ${index + 1}
-            "
+            aria-label="Go to featured product ${index + 1}"
             type="button">
           </button>
 
@@ -461,23 +644,32 @@ function updateHero() {
   const track =
     $("heroTrack");
 
-  if (!track) {
-    return;
-  }
+  const dots =
+    document.querySelectorAll(
+      ".hero-dot"
+    );
 
-  if (!featuredProducts.length) {
+
+  if (!track)
     return;
+
+
+  if (!featuredProducts.length)
+    return;
+
+
+  if (
+    heroIndex >=
+    featuredProducts.length
+  ) {
+
+    heroIndex = 0;
+
   }
 
 
   track.style.transform =
     `translateX(-${heroIndex * 100}%)`;
-
-
-  const dots =
-    document.querySelectorAll(
-      ".hero-dot"
-    );
 
 
   dots.forEach(
@@ -496,13 +688,14 @@ function updateHero() {
 
 function nextHero() {
 
-  if (!featuredProducts.length) {
+  if (!featuredProducts.length)
     return;
-  }
 
 
   heroIndex =
-    (heroIndex + 1) %
+    (
+      heroIndex + 1
+    ) %
     featuredProducts.length;
 
 
@@ -515,12 +708,12 @@ function nextHero() {
 
 function previousHero() {
 
-  if (!featuredProducts.length) {
+  if (!featuredProducts.length)
     return;
-  }
 
 
   heroIndex--;
+
 
   if (heroIndex < 0) {
 
@@ -542,9 +735,8 @@ function goToHero(index) {
   if (
     index < 0 ||
     index >= featuredProducts.length
-  ) {
+  )
     return;
-  }
 
 
   heroIndex = index;
@@ -560,12 +752,9 @@ function startHeroTimer() {
 
   clearInterval(heroTimer);
 
-  heroTimer = null;
 
-
-  if (featuredProducts.length <= 1) {
+  if (featuredProducts.length <= 1)
     return;
-  }
 
 
   heroTimer =
@@ -573,7 +762,9 @@ function startHeroTimer() {
       () => {
 
         heroIndex =
-          (heroIndex + 1) %
+          (
+            heroIndex + 1
+          ) %
           featuredProducts.length;
 
         updateHero();
@@ -610,13 +801,7 @@ if (heroNext) {
 
   heroNext.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      nextHero();
-
-    }
+    nextHero
   );
 
 }
@@ -626,13 +811,7 @@ if (heroPrev) {
 
   heroPrev.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      previousHero();
-
-    }
+    previousHero
   );
 
 }
@@ -642,21 +821,14 @@ if (heroSlider) {
 
   heroSlider.addEventListener(
     "mouseenter",
-    () => {
-
-      clearInterval(heroTimer);
-
-    }
+    () =>
+      clearInterval(heroTimer)
   );
 
 
   heroSlider.addEventListener(
     "mouseleave",
-    () => {
-
-      startHeroTimer();
-
-    }
+    startHeroTimer
   );
 
 }
@@ -675,48 +847,66 @@ function renderProducts() {
     $("searchInput");
 
 
-  if (!container) {
+  if (!container)
     return;
+
+
+  /*
+    Loading state
+  */
+
+  if (!productsLoaded) {
+
+    container.innerHTML = `
+
+      <div class="no-results">
+
+        <div style="font-size:42px;">
+          🎀
+        </div>
+
+        <h3>
+          Loading little looks...
+        </h3>
+
+        <p>
+          Please wait while we load our collection.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
   }
 
 
   /*
-    IMPORTANT:
-    No fake products are injected.
+    No products
   */
 
   if (!products.length) {
 
-    /*
-      If HTML already contains products,
-      don't destroy them.
-    */
+    container.innerHTML = `
 
-    if (
-      container.children.length === 0
-    ) {
+      <div class="no-results">
 
-      container.innerHTML = `
-
-        <div class="no-results">
-
-          <div style="font-size:42px;">
-            🎀
-          </div>
-
-          <h3>
-            Little looks coming soon
-          </h3>
-
-          <p>
-            Our cute collection will be available here soon.
-          </p>
-
+        <div style="font-size:42px;">
+          🎀
         </div>
 
-      `;
+        <h3>
+          Little looks coming soon
+        </h3>
 
-    }
+        <p>
+          Our cute collection will be available here soon.
+        </p>
+
+      </div>
+
+    `;
 
     return;
 
@@ -742,7 +932,10 @@ function renderProducts() {
 
 
         const searchMatch =
-          String(product.name || "")
+          product.name
+            .toLowerCase()
+            .includes(search) ||
+          product.description
             .toLowerCase()
             .includes(search);
 
@@ -794,34 +987,29 @@ function renderProducts() {
             );
 
 
+          const outOfStock =
+            product.stock <= 0;
+
+
           return `
 
             <div
               class="product-card"
-              data-product-id="${product.id}">
+              data-product-id="${escapeHtml(product.id)}">
 
               <div class="product-image">
 
                 <div class="discount">
-                  -${Number(product.discount) || 0}%
+                  -${product.discount}%
                 </div>
 
 
                 <button
                   class="
                     favorite
-                    ${
-                      isFavorite
-                        ? "active"
-                        : ""
-                    }
+                    ${isFavorite ? "active" : ""}
                   "
-                  onclick="
-                    favoriteProduct(
-                      this,
-                      ${product.id}
-                    )
-                  "
+                  onclick="favoriteProduct(this, '${escapeJs(product.id)}')"
                   type="button">
 
                   ♡
@@ -833,10 +1021,19 @@ function renderProducts() {
                   src="${escapeHtml(product.image)}"
                   alt="${escapeHtml(product.name)}"
                   loading="lazy"
-                  onerror="
-                    this.style.display='none'
-                  "
+                  onerror="this.style.display='none'"
                 >
+
+
+                ${
+                  outOfStock
+                    ? `
+                      <div class="stock-badge">
+                        Sold Out
+                      </div>
+                    `
+                    : ""
+                }
 
               </div>
 
@@ -844,38 +1041,48 @@ function renderProducts() {
               <div class="product-info">
 
                 <div class="product-category">
-                  ${escapeHtml(
-                    product.category || ""
-                  )}
+                  ${escapeHtml(product.category)}
                 </div>
 
 
                 <h3>
-                  ${escapeHtml(
-                    product.name || ""
-                  )}
+                  ${escapeHtml(product.name)}
                 </h3>
 
 
                 <div class="product-price-row">
 
                   <strong>
-                    ₱${Number(
-                      product.price || 0
-                    ).toLocaleString()}
+                    ₱${product.price.toLocaleString()}
                   </strong>
 
-                  <del>
-                    ₱${Number(
-                      product.oldPrice || 0
-                    ).toLocaleString()}
-                  </del>
+                  ${
+                    product.oldPrice > 0
+                      ? `
+                        <del>
+                          ₱${product.oldPrice.toLocaleString()}
+                        </del>
+                      `
+                      : ""
+                  }
 
                 </div>
 
 
                 <div class="product-rating">
-                  ⭐ ${product.rating || "5.0"}
+                  ⭐ ${product.rating.toFixed(1)}
+                </div>
+
+
+                <div
+                  class="product-stock">
+
+                  ${
+                    outOfStock
+                      ? "Out of stock"
+                      : `${product.stock} available`
+                  }
+
                 </div>
 
 
@@ -883,11 +1090,7 @@ function renderProducts() {
 
                   <button
                     class="view-product"
-                    onclick="
-                      viewProduct(
-                        ${product.id}
-                      )
-                    "
+                    onclick="viewProduct('${escapeJs(product.id)}')"
                     type="button">
 
                     View Outfit
@@ -897,14 +1100,15 @@ function renderProducts() {
 
                   <button
                     class="add-cart"
-                    onclick="
-                      addToCart(
-                        ${product.id}
-                      )
-                    "
-                    type="button">
+                    onclick="addToCart('${escapeJs(product.id)}')"
+                    type="button"
+                    ${outOfStock ? "disabled" : ""}>
 
-                    🛍️ Add
+                    ${
+                      outOfStock
+                        ? "Sold Out"
+                        : "🛍️ Add"
+                    }
 
                   </button>
 
@@ -932,14 +1136,15 @@ function viewProduct(id) {
   selectedProduct =
     products.find(
       product =>
-        product.id === id
+        String(product.id) ===
+        String(id)
     );
 
 
   if (!selectedProduct) {
 
     showToast(
-      "Product information is not available yet."
+      "Product information is not available."
     );
 
     return;
@@ -956,19 +1161,15 @@ function viewProduct(id) {
     $("productModal");
 
 
-  if (modal) {
-
-    modal.classList.add(
-      "show"
-    );
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
+  if (modal)
+    modal.classList.add("show");
 
 }
 
+
+/* =====================================================
+   CLOSE PRODUCT
+===================================================== */
 
 function closeProduct() {
 
@@ -989,11 +1190,12 @@ function closeProduct() {
 
   selectedQuantity = 1;
 
-
-  restoreBodyScroll();
-
 }
 
+
+/* =====================================================
+   PRODUCT DETAILS
+===================================================== */
 
 function renderProductDetails() {
 
@@ -1001,18 +1203,20 @@ function renderProductDetails() {
     selectedProduct;
 
 
-  if (!product) {
+  if (!product)
     return;
-  }
 
 
   const container =
     $("productDetails");
 
 
-  if (!container) {
+  if (!container)
     return;
-  }
+
+
+  const outOfStock =
+    product.stock <= 0;
 
 
   container.innerHTML = `
@@ -1032,100 +1236,108 @@ function renderProductDetails() {
       <div class="product-detail-info">
 
         <div class="product-detail-category">
-          ${escapeHtml(
-            product.category || ""
-          )}
+          ${escapeHtml(product.category)}
         </div>
 
 
         <div class="product-detail-discount">
-          -${Number(product.discount) || 0}% OFF
+          -${product.discount}% OFF
         </div>
 
 
         <h2>
-          ${escapeHtml(
-            product.name || ""
-          )}
+          ${escapeHtml(product.name)}
         </h2>
 
 
         <div class="product-detail-rating">
-
           ⭐⭐⭐⭐⭐
-
-          ${product.rating || "5.0"}
-
-          · 128 reviews
-
+          ${product.rating.toFixed(1)}
+          · Customer Reviews
         </div>
 
 
         <p class="product-detail-description">
-          ${escapeHtml(
-            product.description || ""
-          )}
+          ${escapeHtml(product.description)}
         </p>
 
 
         <div class="product-detail-price">
-          ₱${Number(
-            product.price || 0
-          ).toLocaleString()}
+          ₱${product.price.toLocaleString()}
         </div>
 
 
-        <div class="product-detail-old-price">
-          ₱${Number(
-            product.oldPrice || 0
-          ).toLocaleString()}
-        </div>
+        ${
+          product.oldPrice > 0
+            ? `
+              <div class="product-detail-old-price">
+                ₱${product.oldPrice.toLocaleString()}
+              </div>
+            `
+            : ""
+        }
 
 
-        <div class="product-quantity">
+        <div class="product-detail-stock">
 
-          <strong>
-            Quantity:
-          </strong>
-
-
-          <button
-            onclick="
-              changeProductQuantity(-1)
-            "
-            type="button">
-
-            −
-
-          </button>
-
-
-          <span id="productQuantity">
-            1
-          </span>
-
-
-          <button
-            onclick="
-              changeProductQuantity(1)
-            "
-            type="button">
-
-            +
-
-          </button>
+          ${
+            outOfStock
+              ? "❌ Out of stock"
+              : `✓ ${product.stock} pieces available`
+          }
 
         </div>
+
+
+        ${
+          !outOfStock
+            ? `
+              <div class="product-quantity">
+
+                <strong>
+                  Quantity:
+                </strong>
+
+
+                <button
+                  onclick="changeProductQuantity(-1)"
+                  type="button">
+
+                  −
+
+                </button>
+
+
+                <span id="productQuantity">
+                  1
+                </span>
+
+
+                <button
+                  onclick="changeProductQuantity(1)"
+                  type="button">
+
+                  +
+
+                </button>
+
+              </div>
+            `
+            : ""
+        }
 
 
         <button
           class="product-buy"
-          onclick="
-            addSelectedProductToCart()
-          "
-          type="button">
+          onclick="addSelectedProductToCart()"
+          type="button"
+          ${outOfStock ? "disabled" : ""}>
 
-          🛍️ Add to Bag
+          ${
+            outOfStock
+              ? "Sold Out"
+              : "🛍️ Add to Bag"
+          }
 
         </button>
 
@@ -1138,20 +1350,46 @@ function renderProductDetails() {
 }
 
 
+/* =====================================================
+   PRODUCT QUANTITY
+===================================================== */
+
 function changeProductQuantity(
   amount
 ) {
 
+  if (!selectedProduct)
+    return;
+
+
+  const maxStock =
+    Math.min(
+      99,
+      Math.max(
+        1,
+        Number(
+          selectedProduct.stock || 1
+        )
+      )
+    );
+
+
   selectedQuantity += amount;
 
 
-  if (selectedQuantity < 1) {
+  if (selectedQuantity < 1)
     selectedQuantity = 1;
-  }
 
 
-  if (selectedQuantity > 99) {
-    selectedQuantity = 99;
+  if (selectedQuantity > maxStock) {
+
+    selectedQuantity =
+      maxStock;
+
+    showToast(
+      `Only ${maxStock} available.`
+    );
+
   }
 
 
@@ -1169,19 +1407,54 @@ function changeProductQuantity(
 }
 
 
+/* =====================================================
+   ADD SELECTED PRODUCT
+===================================================== */
+
 function addSelectedProductToCart() {
 
-  if (!selectedProduct) {
+  if (!selectedProduct)
     return;
+
+
+  if (selectedProduct.stock <= 0) {
+
+    showToast(
+      "This product is sold out."
+    );
+
+    return;
+
   }
 
 
   const existing =
     cart.find(
       item =>
-        item.id ===
-        selectedProduct.id
+        String(item.id) ===
+        String(selectedProduct.id)
     );
+
+
+  const currentQuantity =
+    existing
+      ? Number(existing.quantity)
+      : 0;
+
+
+  if (
+    currentQuantity +
+    selectedQuantity >
+    selectedProduct.stock
+  ) {
+
+    showToast(
+      `Only ${selectedProduct.stock} available.`
+    );
+
+    return;
+
+  }
 
 
   if (existing) {
@@ -1231,35 +1504,58 @@ function normalizeCart() {
 
   cart =
     cart
-      .filter(item => {
+      .map(
+        item => {
 
-        const product =
-          products.find(
-            p =>
-              p.id === item.id
-          );
+          const product =
+            products.find(
+              p =>
+                String(p.id) ===
+                String(item.id)
+            );
 
-        return (
-          product &&
-          Number(item.quantity) > 0
-        );
 
-      })
-      .map(item => ({
+          if (!product)
+            return null;
 
-        id:
-          item.id,
 
-        quantity:
-          Math.min(
-            99,
-            Math.max(
-              1,
-              Number(item.quantity)
-            )
-          )
+          const quantity =
+            Number(
+              item.quantity
+            );
 
-      }));
+
+          if (
+            !Number.isFinite(quantity) ||
+            quantity <= 0 ||
+            product.stock <= 0
+          ) {
+
+            return null;
+
+          }
+
+
+          return {
+
+            id:
+              product.id,
+
+            quantity:
+              Math.min(
+                99,
+                product.stock,
+                Math.max(
+                  1,
+                  quantity
+                )
+              )
+
+          };
+
+        }
+      )
+      .filter(Boolean);
 
 }
 
@@ -1269,21 +1565,10 @@ function saveCart() {
   normalizeCart();
 
 
-  try {
-
-    localStorage.setItem(
-      "zolas-cart",
-      JSON.stringify(cart)
-    );
-
-  } catch (error) {
-
-    console.warn(
-      "Unable to save cart:",
-      error
-    );
-
-  }
+  localStorage.setItem(
+    "zolas-cart",
+    JSON.stringify(cart)
+  );
 
 
   renderCart();
@@ -1297,14 +1582,27 @@ function addToCart(id) {
 
   const product =
     products.find(
-      p => p.id === id
+      p =>
+        String(p.id) ===
+        String(id)
     );
 
 
   if (!product) {
 
     showToast(
-      "Product is not available yet."
+      "Product is not available."
+    );
+
+    return;
+
+  }
+
+
+  if (product.stock <= 0) {
+
+    showToast(
+      "This product is sold out."
     );
 
     return;
@@ -1315,21 +1613,32 @@ function addToCart(id) {
   const existing =
     cart.find(
       item =>
-        item.id === id
+        String(item.id) ===
+        String(id)
     );
 
 
+  const currentQuantity =
+    existing
+      ? Number(existing.quantity)
+      : 0;
+
+
+  if (
+    currentQuantity >=
+    product.stock
+  ) {
+
+    showToast(
+      `Only ${product.stock} available.`
+    );
+
+    return;
+
+  }
+
+
   if (existing) {
-
-    if (existing.quantity >= 99) {
-
-      showToast(
-        "Maximum quantity reached."
-      );
-
-      return;
-
-    }
 
     existing.quantity++;
 
@@ -1337,9 +1646,11 @@ function addToCart(id) {
 
     cart.push({
 
-      id,
+      id:
+        product.id,
 
-      quantity: 1
+      quantity:
+        1
 
     });
 
@@ -1395,9 +1706,8 @@ function renderCart() {
     $("cartItems");
 
 
-  if (!container) {
+  if (!container)
     return;
-  }
 
 
   normalizeCart();
@@ -1430,12 +1740,10 @@ function renderCart() {
       $("cartTotal");
 
 
-    if (totalElement) {
-
+    if (totalElement)
       totalElement.textContent =
         "₱0";
 
-    }
 
     return;
 
@@ -1453,17 +1761,17 @@ function renderCart() {
           const product =
             products.find(
               p =>
-                p.id === item.id
+                String(p.id) ===
+                String(item.id)
             );
 
 
-          if (!product) {
+          if (!product)
             return "";
-          }
 
 
           const subtotal =
-            Number(product.price || 0) *
+            product.price *
             item.quantity;
 
 
@@ -1477,12 +1785,8 @@ function renderCart() {
               <div class="cart-item-image">
 
                 <img
-                  src="${escapeHtml(
-                    product.image
-                  )}"
-                  alt="${escapeHtml(
-                    product.name
-                  )}"
+                  src="${escapeHtml(product.image)}"
+                  alt="${escapeHtml(product.name)}"
                   loading="lazy"
                 >
 
@@ -1492,9 +1796,7 @@ function renderCart() {
               <div class="cart-item-content">
 
                 <h4>
-                  ${escapeHtml(
-                    product.name
-                  )}
+                  ${escapeHtml(product.name)}
                 </h4>
 
 
@@ -1506,12 +1808,7 @@ function renderCart() {
                 <div class="quantity">
 
                   <button
-                    onclick="
-                      changeQuantity(
-                        ${product.id},
-                        -1
-                      )
-                    "
+                    onclick="changeQuantity('${escapeJs(product.id)}', -1)"
                     type="button">
 
                     −
@@ -1525,12 +1822,7 @@ function renderCart() {
 
 
                   <button
-                    onclick="
-                      changeQuantity(
-                        ${product.id},
-                        1
-                      )
-                    "
+                    onclick="changeQuantity('${escapeJs(product.id)}', 1)"
                     type="button">
 
                     +
@@ -1540,11 +1832,7 @@ function renderCart() {
 
                   <button
                     class="remove"
-                    onclick="
-                      removeFromCart(
-                        ${product.id}
-                      )
-                    "
+                    onclick="removeFromCart('${escapeJs(product.id)}')"
                     type="button">
 
                     Remove
@@ -1586,35 +1874,75 @@ function changeQuantity(
 
   const item =
     cart.find(
-      i => i.id === id
+      i =>
+        String(i.id) ===
+        String(id)
     );
 
 
-  if (!item) {
+  if (!item)
     return;
-  }
 
 
-  item.quantity += amount;
+  const product =
+    products.find(
+      p =>
+        String(p.id) ===
+        String(id)
+    );
 
 
-  if (item.quantity <= 0) {
+  if (!product)
+    return;
+
+
+  const newQuantity =
+    Number(item.quantity) +
+    amount;
+
+
+  if (newQuantity <= 0) {
 
     cart =
       cart.filter(
-        i => i.id !== id
+        i =>
+          String(i.id) !==
+          String(id)
       );
+
+    saveCart();
+
+    return;
 
   }
 
 
-  if (item.quantity > 99) {
+  if (
+    newQuantity >
+    product.stock
+  ) {
+
+    showToast(
+      `Only ${product.stock} available.`
+    );
+
+    return;
+
+  }
+
+
+  if (newQuantity > 99) {
 
     item.quantity = 99;
 
     showToast(
       "Maximum quantity reached."
     );
+
+  } else {
+
+    item.quantity =
+      newQuantity;
 
   }
 
@@ -1628,14 +1956,17 @@ function removeFromCart(id) {
 
   const product =
     products.find(
-      p => p.id === id
+      p =>
+        String(p.id) ===
+        String(id)
     );
 
 
   cart =
     cart.filter(
       item =>
-        item.id !== id
+        String(item.id) !==
+        String(id)
     );
 
 
@@ -1659,8 +1990,6 @@ function openCart() {
 
   renderCart();
 
-  updateCartCount();
-
 
   const overlay =
     $("cartOverlay");
@@ -1671,9 +2000,6 @@ function openCart() {
     overlay.classList.add(
       "show"
     );
-
-    document.body.style.overflow =
-      "hidden";
 
   }
 
@@ -1693,9 +2019,6 @@ function closeCart() {
     );
 
   }
-
-
-  restoreBodyScroll();
 
 }
 
@@ -1742,16 +2065,8 @@ function startCheckout() {
     $("checkoutOverlay");
 
 
-  if (overlay) {
-
-    overlay.classList.add(
-      "show"
-    );
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
+  if (overlay)
+    overlay.classList.add("show");
 
 }
 
@@ -1762,16 +2077,8 @@ function closeCheckout() {
     $("checkoutOverlay");
 
 
-  if (overlay) {
-
-    overlay.classList.remove(
-      "show"
-    );
-
-  }
-
-
-  restoreBodyScroll();
+  if (overlay)
+    overlay.classList.remove("show");
 
 }
 
@@ -1786,9 +2093,8 @@ function renderCheckout() {
     $("checkoutItems");
 
 
-  if (!container) {
+  if (!container)
     return;
-  }
 
 
   let subtotal = 0;
@@ -1802,17 +2108,17 @@ function renderCheckout() {
           const product =
             products.find(
               p =>
-                p.id === item.id
+                String(p.id) ===
+                String(item.id)
             );
 
 
-          if (!product) {
+          if (!product)
             return "";
-          }
 
 
           const total =
-            Number(product.price || 0) *
+            product.price *
             item.quantity;
 
 
@@ -1824,9 +2130,7 @@ function renderCheckout() {
             <div class="summary-item">
 
               <span>
-                ${escapeHtml(
-                  product.name
-                )}
+                ${escapeHtml(product.name)}
                 × ${item.quantity}
               </span>
 
@@ -1903,14 +2207,15 @@ function updateCheckoutTotal() {
       const product =
         products.find(
           p =>
-            p.id === item.id
+            String(p.id) ===
+            String(item.id)
         );
 
 
       if (product) {
 
         subtotal +=
-          Number(product.price || 0) *
+          product.price *
           item.quantity;
 
       }
@@ -1970,9 +2275,8 @@ function updateCheckoutTotal() {
 
 async function placeOrder() {
 
-  if (isPlacingOrder) {
+  if (isPlacingOrder)
     return;
-  }
 
 
   if (!currentUser) {
@@ -2062,17 +2366,31 @@ async function placeOrder() {
           const product =
             products.find(
               p =>
-                p.id === item.id
+                String(p.id) ===
+                String(item.id)
             );
 
 
-          if (!product) {
+          if (!product)
             return null;
+
+
+          /*
+            Check stock again before order
+          */
+
+          if (
+            item.quantity >
+            product.stock
+          ) {
+
+            return null;
+
           }
 
 
           const itemTotal =
-            Number(product.price || 0) *
+            product.price *
             item.quantity;
 
 
@@ -2173,9 +2491,7 @@ async function placeOrder() {
 
     isPlacingOrder = true;
 
-    setCheckoutButtonLoading(
-      true
-    );
+    setCheckoutButtonLoading(true);
 
 
     const orderRef =
@@ -2239,9 +2555,7 @@ async function placeOrder() {
 
     isPlacingOrder = false;
 
-    setCheckoutButtonLoading(
-      false
-    );
+    setCheckoutButtonLoading(false);
 
   }
 
@@ -2270,9 +2584,7 @@ function setCheckoutButtonLoading(
         button.disabled = true;
 
 
-        if (
-          !button.dataset.originalText
-        ) {
+        if (!button.dataset.originalText) {
 
           button.dataset.originalText =
             button.textContent;
@@ -2288,9 +2600,7 @@ function setCheckoutButtonLoading(
         button.disabled = false;
 
 
-        if (
-          button.dataset.originalText
-        ) {
+        if (button.dataset.originalText) {
 
           button.textContent =
             button.dataset.originalText;
@@ -2319,9 +2629,8 @@ function showOrderSuccess(
     $("checkoutContent");
 
 
-  if (!checkoutContent) {
+  if (!checkoutContent)
     return;
-  }
 
 
   checkoutContent.innerHTML = `
@@ -2404,8 +2713,10 @@ function favoriteProduct(
 ) {
 
   const index =
-    favorites.indexOf(
-      productId
+    favorites.findIndex(
+      id =>
+        String(id) ===
+        String(productId)
     );
 
 
@@ -2416,13 +2727,9 @@ function favoriteProduct(
     );
 
 
-    if (button) {
-
-      button.classList.add(
-        "active"
-      );
-
-    }
+    button.classList.add(
+      "active"
+    );
 
 
     showToast(
@@ -2437,13 +2744,9 @@ function favoriteProduct(
     );
 
 
-    if (button) {
-
-      button.classList.remove(
-        "active"
-      );
-
-    }
+    button.classList.remove(
+      "active"
+    );
 
 
     showToast(
@@ -2471,9 +2774,8 @@ function showToast(message) {
     $("toast");
 
 
-  if (!toast) {
+  if (!toast)
     return;
-  }
 
 
   toast.textContent =
@@ -2493,9 +2795,7 @@ function showToast(message) {
   );
 
 
-  clearTimeout(
-    toastTimer
-  );
+  clearTimeout(toastTimer);
 
 
   toastTimer =
@@ -2552,6 +2852,35 @@ function escapeHtml(value) {
 
 
 /* =====================================================
+   ESCAPE JAVASCRIPT STRING
+===================================================== */
+
+function escapeJs(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /\\/g,
+      "\\\\"
+    )
+    .replace(
+      /'/g,
+      "\\'"
+    )
+    .replace(
+      /"/g,
+      '\\"'
+    )
+    .replace(
+      /\r?\n/g,
+      "\\n"
+    );
+
+}
+
+
+/* =====================================================
    SEARCH
 ===================================================== */
 
@@ -2574,9 +2903,7 @@ if (searchInput) {
 ===================================================== */
 
 document
-  .querySelectorAll(
-    ".category"
-  )
+  .querySelectorAll(".category")
   .forEach(
     button => {
 
@@ -2585,9 +2912,7 @@ document
         function () {
 
           document
-            .querySelectorAll(
-              ".category"
-            )
+            .querySelectorAll(".category")
             .forEach(
               b =>
                 b.classList.remove(
@@ -2629,9 +2954,7 @@ const savedTheme =
   );
 
 
-if (
-  savedTheme === "dark"
-) {
+if (savedTheme === "dark") {
 
   document.body.classList.add(
     "dark"
@@ -2652,10 +2975,7 @@ if (themeBtn) {
 
   themeBtn.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
+    () => {
 
       document.body.classList.toggle(
         "dark"
@@ -2699,15 +3019,7 @@ if (cartBtn) {
 
   cartBtn.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      event.stopPropagation();
-
-      openCart();
-
-    }
+    openCart
   );
 
 }
@@ -2823,11 +3135,8 @@ document.addEventListener(
   "keydown",
   event => {
 
-    if (
-      event.key !== "Escape"
-    ) {
+    if (event.key !== "Escape")
       return;
-    }
 
 
     closeProduct();
@@ -2843,113 +3152,61 @@ document.addEventListener(
 
 
 /* =====================================================
-   BODY SCROLL
-===================================================== */
-
-function restoreBodyScroll() {
-
-  const hasOpenModal =
-    document.querySelector(
-      ".show"
-    );
-
-
-  if (!hasOpenModal) {
-
-    document.body.style.overflow =
-      "";
-
-  }
-
-}
-
-
-/* =====================================================
    AUTH
 ===================================================== */
 
 function openLogin() {
 
-  if (loginView) {
-
+  if (loginView)
     loginView.classList.remove(
       "hidden"
     );
 
-  }
 
-
-  if (registerView) {
-
+  if (registerView)
     registerView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (accountView) {
-
+  if (accountView)
     accountView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
 
 }
 
 
 function openRegister() {
 
-  if (loginView) {
-
+  if (loginView)
     loginView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (registerView) {
-
+  if (registerView)
     registerView.classList.remove(
       "hidden"
     );
 
-  }
 
-
-  if (accountView) {
-
+  if (accountView)
     accountView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
 
 }
 
@@ -2965,35 +3222,27 @@ function openAccount() {
   }
 
 
-  if (loginView) {
-
+  if (loginView)
     loginView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (registerView) {
-
+  if (registerView)
     registerView.classList.add(
       "hidden"
     );
 
-  }
 
-
-  if (accountView) {
-
+  if (accountView)
     accountView.classList.remove(
       "hidden"
     );
 
-  }
-
 
   const accountName =
     $("accountName");
+
 
   const accountEmail =
     $("accountEmail");
@@ -3022,16 +3271,10 @@ function openAccount() {
   }
 
 
-  if (authOverlay) {
-
+  if (authOverlay)
     authOverlay.classList.add(
       "show"
     );
-
-    document.body.style.overflow =
-      "hidden";
-
-  }
 
 }
 
@@ -3045,9 +3288,6 @@ function closeAuth() {
     );
 
   }
-
-
-  restoreBodyScroll();
 
 }
 
@@ -3070,18 +3310,13 @@ if (registerForm) {
 
 
       const name =
-        $("registerName")
-          ?.value
-          .trim() || "";
+        $("registerName")?.value.trim() || "";
 
       const email =
-        $("registerEmail")
-          ?.value
-          .trim() || "";
+        $("registerEmail")?.value.trim() || "";
 
       const password =
-        $("registerPassword")
-          ?.value || "";
+        $("registerPassword")?.value || "";
 
 
       if (!name) {
@@ -3106,9 +3341,7 @@ if (registerForm) {
       }
 
 
-      if (
-        password.length < 6
-      ) {
+      if (password.length < 6) {
 
         showToast(
           "Password must be at least 6 characters."
@@ -3129,8 +3362,7 @@ if (registerForm) {
 
         if (submitButton) {
 
-          submitButton.disabled =
-            true;
+          submitButton.disabled = true;
 
           submitButton.dataset.originalText =
             submitButton.textContent;
@@ -3214,8 +3446,7 @@ if (registerForm) {
 
         if (submitButton) {
 
-          submitButton.disabled =
-            false;
+          submitButton.disabled = false;
 
           submitButton.textContent =
             submitButton.dataset.originalText ||
@@ -3249,19 +3480,13 @@ if (loginForm) {
 
 
       const email =
-        $("loginEmail")
-          ?.value
-          .trim() || "";
+        $("loginEmail")?.value.trim() || "";
 
       const password =
-        $("loginPassword")
-          ?.value || "";
+        $("loginPassword")?.value || "";
 
 
-      if (
-        !email ||
-        !password
-      ) {
+      if (!email || !password) {
 
         showToast(
           "Please enter your email and password."
@@ -3282,8 +3507,7 @@ if (loginForm) {
 
         if (submitButton) {
 
-          submitButton.disabled =
-            true;
+          submitButton.disabled = true;
 
           submitButton.dataset.originalText =
             submitButton.textContent;
@@ -3327,8 +3551,7 @@ if (loginForm) {
 
         if (submitButton) {
 
-          submitButton.disabled =
-            false;
+          submitButton.disabled = false;
 
           submitButton.textContent =
             submitButton.dataset.originalText ||
@@ -3358,8 +3581,7 @@ async function loginWithGoogle() {
 
     if (googleButton) {
 
-      googleButton.disabled =
-        true;
+      googleButton.disabled = true;
 
       googleButton.dataset.originalText =
         googleButton.textContent;
@@ -3445,8 +3667,7 @@ async function loginWithGoogle() {
 
     if (googleButton) {
 
-      googleButton.disabled =
-        false;
+      googleButton.disabled = false;
 
       googleButton.textContent =
         googleButton.dataset.originalText ||
@@ -3471,13 +3692,7 @@ if (googleLoginBtn) {
 
   googleLoginBtn.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      loginWithGoogle();
-
-    }
+    loginWithGoogle
   );
 
 }
@@ -3495,10 +3710,7 @@ if (logoutBtn) {
 
   logoutBtn.addEventListener(
     "click",
-    async event => {
-
-      event.preventDefault();
-
+    async () => {
 
       try {
 
@@ -3547,9 +3759,8 @@ onAuthStateChanged(
     updateAuthUI();
 
 
-    if (!user) {
+    if (!user)
       return;
-    }
 
 
     try {
@@ -3583,8 +3794,7 @@ onAuthStateChanged(
               "",
 
             provider:
-              user.providerData?.[0]
-                ?.providerId ||
+              user.providerData?.[0]?.providerId ||
               "unknown",
 
             createdAt:
@@ -3618,9 +3828,8 @@ function updateAuthUI() {
     $("profileBtn");
 
 
-  if (!profileBtn) {
+  if (!profileBtn)
     return;
-  }
 
 
   if (currentUser) {
@@ -3678,15 +3887,7 @@ if (profileBtn) {
 
   profileBtn.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      event.stopPropagation();
-
-      openAccount();
-
-    }
+    openAccount
   );
 
 }
@@ -3704,13 +3905,7 @@ if (authClose) {
 
   authClose.addEventListener(
     "click",
-    event => {
-
-      event.preventDefault();
-
-      closeAuth();
-
-    }
+    closeAuth
   );
 
 }
@@ -3807,69 +4002,55 @@ function getFirebaseErrorMessage(
   error
 ) {
 
-  if (!error) {
-
+  if (!error)
     return "Something went wrong.";
-
-  }
 
 
   switch (error.code) {
 
     case "auth/email-already-in-use":
-
       return "This email is already registered.";
 
     case "auth/invalid-email":
-
       return "Please enter a valid email address.";
 
     case "auth/weak-password":
-
       return "Password is too weak. Use at least 6 characters.";
 
     case "auth/user-not-found":
-
       return "No account found with this email.";
 
     case "auth/wrong-password":
-
       return "Incorrect password.";
 
     case "auth/invalid-credential":
-
       return "Incorrect email or password.";
 
     case "auth/popup-closed-by-user":
-
       return "Google sign-in was cancelled.";
 
     case "auth/popup-blocked":
-
       return "Your browser blocked the Google sign-in popup.";
 
-    case "auth/network-request-failed":
+    case "auth/unauthorized-domain":
+      return "This website domain is not authorized in Firebase.";
 
+    case "auth/network-request-failed":
       return "Network error. Please check your internet connection.";
 
     case "auth/too-many-requests":
-
       return "Too many attempts. Please try again later.";
 
     case "auth/user-disabled":
-
       return "This account has been disabled.";
 
     case "auth/operation-not-allowed":
-
       return "This sign-in method is currently unavailable.";
 
     case "auth/requires-recent-login":
-
       return "Please sign in again to continue.";
 
     default:
-
       return (
         error.message ||
         "Something went wrong. Please try again."
@@ -3907,9 +4088,6 @@ window.removeFromCart =
 
 window.closeCart =
   closeCart;
-
-window.openCart =
-  openCart;
 
 window.startCheckout =
   startCheckout;
@@ -3985,7 +4163,7 @@ console.log(
 );
 
 console.log(
-  "🛍️ Dynamic sample products disabled."
+  "🔥 Firebase products loading enabled."
 );
 
 console.log(

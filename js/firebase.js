@@ -1,77 +1,64 @@
 /* =====================================================
    ZOLA'S CLOSET
    FIREBASE CONFIGURATION
-   Firebase Auth + Realtime Database
+   FIREBASE AUTH + REALTIME DATABASE
 ===================================================== */
 
-
-/* =====================================================
-   FIREBASE CORE
-===================================================== */
-
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
-
-
-/* =====================================================
-   FIREBASE AUTHENTICATION
-===================================================== */
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
   getAuth,
   GoogleAuthProvider,
-
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut,
+  signInWithPopup,
   updateProfile,
   onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
-
-
-/* =====================================================
-   FIREBASE REALTIME DATABASE
-===================================================== */
+} from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
   getDatabase,
   ref,
   set,
   get
-} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-database.js";
+} from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
 /* =====================================================
    FIREBASE CONFIG
 ===================================================== */
 
+/*
+  PALITAN ANG VALUES SA IBABA
+  GAMITIN ANG CONFIG MULA SA FIREBASE CONSOLE
+*/
+
 const firebaseConfig = {
 
   apiKey:
-    "AIzaSyC1SI1SKfGwkCHpKo7pTelBpwMe4kF7QSQ",
+    "YOUR_FIREBASE_API_KEY",
 
   authDomain:
-    "zola-closet.firebaseapp.com",
+    "YOUR_PROJECT_ID.firebaseapp.com",
 
   databaseURL:
-    "https://zola-closet-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
 
   projectId:
-    "zola-closet",
+    "YOUR_PROJECT_ID",
 
   storageBucket:
-    "zola-closet.firebasestorage.app",
+    "YOUR_PROJECT_ID.firebasestorage.app",
 
   messagingSenderId:
-    "639479599220",
+    "YOUR_MESSAGING_SENDER_ID",
 
   appId:
-    "1:639479599220:web:1f805b0eb81e0581138121",
-
-  measurementId:
-    "G-P98X01S36Q"
+    "YOUR_FIREBASE_APP_ID"
 
 };
 
@@ -85,7 +72,7 @@ const app =
 
 
 /* =====================================================
-   INITIALIZE AUTH
+   FIREBASE AUTH
 ===================================================== */
 
 const auth =
@@ -93,7 +80,7 @@ const auth =
 
 
 /* =====================================================
-   GOOGLE PROVIDER
+   GOOGLE AUTH PROVIDER
 ===================================================== */
 
 const googleProvider =
@@ -101,7 +88,7 @@ const googleProvider =
 
 
 /* =====================================================
-   INITIALIZE REALTIME DATABASE
+   REALTIME DATABASE
 ===================================================== */
 
 const database =
@@ -109,43 +96,28 @@ const database =
 
 
 /* =====================================================
-   EXPORT EVERYTHING NEEDED BY script.js
+   EXPORT FIREBASE SERVICES
 ===================================================== */
 
 export {
 
-  /* Firebase */
-
+  /* Firebase Core */
   app,
+
+  /* Authentication */
   auth,
-  database,
-
-  /* Google */
-
   googleProvider,
-
-  /* Realtime Database */
-
-  ref,
-  set,
-  get,
-
-  /* Email / Password Auth */
-
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-
-  /* Google Auth */
-
-  signInWithPopup,
-
-  /* Account */
-
   signOut,
+  signInWithPopup,
   updateProfile,
+  onAuthStateChanged,
 
-  /* Auth State */
-
-  onAuthStateChanged
+  /* Realtime Database */
+  database,
+  ref,
+  set,
+  get
 
 };

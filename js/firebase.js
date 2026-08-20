@@ -4,8 +4,28 @@
    FIREBASE AUTH + REALTIME DATABASE
 ===================================================== */
 
-import { initializeApp } from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+/* =====================================================
+   FIREBASE APP
+===================================================== */
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+
+/* =====================================================
+   FIREBASE ANALYTICS
+===================================================== */
+
+import {
+  getAnalytics
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+
+/* =====================================================
+   FIREBASE AUTHENTICATION
+===================================================== */
 
 import {
   getAuth,
@@ -16,49 +36,50 @@ import {
   signInWithPopup,
   updateProfile,
   onAuthStateChanged
-} from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+/* =====================================================
+   FIREBASE REALTIME DATABASE
+===================================================== */
 
 import {
   getDatabase,
   ref,
   set,
   get
-} from
-  "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
 /* =====================================================
-   FIREBASE CONFIG
+   FIREBASE CONFIGURATION
 ===================================================== */
-
-/*
-  PALITAN ANG VALUES SA IBABA
-  GAMITIN ANG CONFIG MULA SA FIREBASE CONSOLE
-*/
 
 const firebaseConfig = {
 
   apiKey:
-    "YOUR_FIREBASE_API_KEY",
+    "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
 
   authDomain:
-    "YOUR_PROJECT_ID.firebaseapp.com",
+    "zola-closet.firebaseapp.com",
 
   databaseURL:
-    "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    "https://zola-closet-default-rtdb.asia-southeast1.firebasedatabase.app",
 
   projectId:
-    "YOUR_PROJECT_ID",
+    "zola-closet",
 
   storageBucket:
-    "YOUR_PROJECT_ID.firebasestorage.app",
+    "zola-closet.firebasestorage.app",
 
   messagingSenderId:
-    "YOUR_MESSAGING_SENDER_ID",
+    "639479599220",
 
   appId:
-    "YOUR_FIREBASE_APP_ID"
+    "1:639479599220:web:1f805b0eb81e0581138121",
+
+  measurementId:
+    "G-P98X01S36Q"
 
 };
 
@@ -72,7 +93,28 @@ const app =
 
 
 /* =====================================================
-   FIREBASE AUTH
+   ANALYTICS
+===================================================== */
+
+let analytics = null;
+
+try {
+
+  analytics =
+    getAnalytics(app);
+
+} catch (error) {
+
+  console.warn(
+    "Firebase Analytics unavailable:",
+    error
+  );
+
+}
+
+
+/* =====================================================
+   AUTH
 ===================================================== */
 
 const auth =
@@ -87,6 +129,18 @@ const googleProvider =
   new GoogleAuthProvider();
 
 
+/*
+  Optional:
+  Force Google account selection
+  instead of automatically using
+  a previously signed-in account.
+*/
+
+googleProvider.setCustomParameters({
+  prompt: "select_account"
+});
+
+
 /* =====================================================
    REALTIME DATABASE
 ===================================================== */
@@ -96,7 +150,7 @@ const database =
 
 
 /* =====================================================
-   EXPORT FIREBASE SERVICES
+   EXPORT
 ===================================================== */
 
 export {
@@ -104,9 +158,13 @@ export {
   /* Firebase Core */
   app,
 
+  /* Analytics */
+  analytics,
+
   /* Authentication */
   auth,
   googleProvider,
+
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -121,3 +179,20 @@ export {
   get
 
 };
+
+
+/* =====================================================
+   FIREBASE READY MESSAGE
+===================================================== */
+
+console.log(
+  "🔥 Zola's Closet Firebase initialized successfully."
+);
+
+console.log(
+  "🔥 Firebase Auth: Ready"
+);
+
+console.log(
+  "🔥 Realtime Database: Ready"
+);

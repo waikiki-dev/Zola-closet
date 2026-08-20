@@ -12,7 +12,6 @@ import {
   ref,
   set,
   get,
-  onValue,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -23,14 +22,12 @@ import {
 
 
 /* =====================================================
-   PRODUCTS
-   Loaded dynamically from Firebase Realtime Database
+   FIREBASE PRODUCTS
 ===================================================== */
 
 let products = [];
-let featuredProducts = [];
 
-let productsLoaded = false;
+let featuredProducts = [];
 
 
 /* =====================================================
@@ -129,6 +126,26 @@ function loadLocalStorage(
 
 
 /* =====================================================
+   SAVE CART
+===================================================== */
+
+function saveCart() {
+
+  normalizeCart();
+
+  localStorage.setItem(
+    "zolas-cart",
+    JSON.stringify(cart)
+  );
+
+  renderCart();
+
+  updateCartCount();
+
+}
+
+
+/* =====================================================
    SAVE FAVORITES
 ===================================================== */
 
@@ -143,200 +160,362 @@ function saveFavorites() {
 
 
 /* =====================================================
-   FIREBASE PRODUCTS
+   LOAD PRODUCTS FROM FIREBASE
 ===================================================== */
 
-function loadProductsFromFirebase() {
+async function loadProducts() {
 
-  const productsRef =
-    ref(
-      database,
-      "products"
-    );
+  const container =
+    $("products");
 
 
-  onValue(
-    productsRef,
-    snapshot => {
+  if (container) {
 
-      const data =
-        snapshot.val();
+    container.innerHTML = `
 
+      <div class="no-results">
 
-      if (!data) {
+        <div style="font-size:42px;">
+          🎀
+        </div>
 
-        products = [];
+        <h3>
+          Loading our cute collection...
+        </h3>
 
-        featuredProducts = [];
+        <p>
+          Please wait a moment.
+        </p>
 
-        productsLoaded = true;
+      </div>
 
-        renderProducts();
-        renderHero();
-        renderCart();
-        updateCartCount();
+    `;
 
-        return;
-
-      }
-
-
-      products =
-        Object.entries(data)
-          .map(
-            ([id, product]) => ({
-
-              id:
-
-                String(id),
-
-              name:
-
-                product?.name ||
-                "Unnamed Product",
-
-              category:
-
-                String(
-                  product?.category ||
-                  "all"
-                ).toLowerCase(),
-
-              price:
-
-                Number(
-                  product?.price || 0
-                ),
-
-              oldPrice:
-
-                Number(
-                  product?.oldPrice || 0
-                ),
-
-              discount:
-
-                Number(
-                  product?.discount || 0
-                ),
-
-              rating:
-
-                Number(
-                  product?.rating || 0
-                ),
-
-              image:
-
-                product?.image ||
-                "",
-
-              description:
-
-                product?.description ||
-                "",
-
-              featured:
-
-                product?.featured === true,
-
-              stock:
-
-                Math.max(
-                  0,
-                  Number(
-                    product?.stock || 0
-                  )
-                )
-
-            })
-          );
+  }
 
 
-      featuredProducts =
-        products.filter(
-          product =>
-            product.featured === true &&
-            product.stock > 0
-        );
+  try {
 
-
-      productsLoaded = true;
-
-
-      /*
-        Remove cart items for products
-        that no longer exist in Firebase.
-      */
-
-      normalizeCart();
-
-
-      console.log(
-        "🔥 Firebase products loaded:",
-        products
+    const productsRef =
+      ref(
+        database,
+        "products"
       );
+
+
+    const snapshot =
+      await get(productsRef);
+
+
+    if (!snapshot.exists()) {
+
+      console.warn(
+        "No products found at /products"
+      );
+
+
+      products = [];
+
+      featuredProducts = [];
 
 
       renderProducts();
 
       renderHero();
 
+      normalizeCart();
+
       renderCart();
 
       updateCartCount();
 
-      heroIndex = 0;
-
-      startHeroTimer();
-
-    },
-
-    error => {
-
-      console.error(
-        "Firebase products error:",
-        error
-      );
-
-
-      productsLoaded = false;
-
-
-      const container =
-        $("products");
-
-
-      if (container) {
-
-        container.innerHTML = `
-
-          <div class="no-results">
-
-            <div style="font-size:42px;">
-              ⚠️
-            </div>
-
-            <h3>
-              Unable to load products
-            </h3>
-
-            <p>
-              Please refresh the page and try again.
-            </p>
-
-          </div>
-
-        `;
-
-      }
-
-
-      showToast(
-        "Unable to load products."
-      );
+      return;
 
     }
+
+
+    const data =
+      snapshot.val();
+
+
+    /*
+      Firebase Realtime Database
+      usually returns an object:
+
+      {
+        productId1: {...},
+        productId2: {...}
+      }
+
+      Convert it into an array.
+    */
+
+    if (
+      typeof data === "object" &&
+      !Array.isArray(data)
+    ) {
+
+      products =
+        Object.entries(data)
+          .map(
+            ([firebaseId, product]) => {
+
+              return normalizeProduct(
+                product,
+                firebaseId
+              );
+
+            }
+          )
+          .filter(Boolean);
+
+    } else if (
+      Array.isArray(data)
+    ) {
+
+      products =
+        data
+          .map(
+            (product, index) =>
+              normalizeProduct(
+                product,
+                index
+              )
+          )
+          .filter(Boolean);
+
+    } else {
+
+      products = [];
+
+    }
+
+
+    /*
+      Featured products.
+
+      If a product has:
+
+      featured: true
+
+      it will appear in the hero.
+
+      If none are marked featured,
+      the first products will be used.
+    */
+
+    featuredProducts =
+      products.filter(
+        product =>
+          product.featured === true
+      );
+
+
+    if (!featuredProducts.length) {
+
+      featuredProducts =
+        products.slice(0, 5);
+
+    }
+
+
+    console.log(
+      `🛍️ ${products.length} products loaded from Firebase.`
+    );
+
+
+    renderProducts();
+
+    renderHero();
+
+    normalizeCart();
+
+    renderCart();
+
+    updateCartCount();
+
+    startHeroTimer();
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ Failed to load products:",
+      error
+    );
+
+
+    products = [];
+
+    featuredProducts = [];
+
+
+    if (container) {
+
+      container.innerHTML = `
+
+        <div class="no-results">
+
+          <div style="font-size:42px;">
+            ⚠️
+          </div>
+
+          <h3>
+            Unable to load products
+          </h3>
+
+          <p>
+            Please check your Firebase Database connection and rules.
+          </p>
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   NORMALIZE PRODUCT
+===================================================== */
+
+function normalizeProduct(
+  product,
+  firebaseId
+) {
+
+  if (!product)
+    return null;
+
+
+  /*
+    Support both:
+
+    id
+
+    and Firebase key.
+  */
+
+  const id =
+    product.id !== undefined
+      ? product.id
+      : firebaseId;
+
+
+  const price =
+    Number(
+      product.price || 0
+    );
+
+
+  const oldPrice =
+    Number(
+      product.oldPrice ||
+      product.originalPrice ||
+      price
+    );
+
+
+  const discount =
+    Number(
+      product.discount ||
+      calculateDiscount(
+        price,
+        oldPrice
+      )
+    );
+
+
+  return {
+
+    id,
+
+    firebaseId,
+
+    name:
+      String(
+        product.name ||
+        "Unnamed Product"
+      ),
+
+    category:
+      String(
+        product.category ||
+        "all"
+      ).toLowerCase(),
+
+    price,
+
+    oldPrice,
+
+    discount,
+
+    rating:
+      Number(
+        product.rating || 5
+      ),
+
+    description:
+      String(
+        product.description ||
+        "Cute and comfortable style for little ones."
+      ),
+
+    image:
+      String(
+        product.image ||
+        product.imageUrl ||
+        ""
+      ),
+
+    featured:
+      product.featured === true,
+
+    stock:
+      Number(
+        product.stock ?? 999
+      ),
+
+    sizes:
+      Array.isArray(product.sizes)
+        ? product.sizes
+        : [],
+
+    color:
+      String(
+        product.color ||
+        ""
+      )
+
+  };
+
+}
+
+
+/* =====================================================
+   CALCULATE DISCOUNT
+===================================================== */
+
+function calculateDiscount(
+  price,
+  oldPrice
+) {
+
+  if (
+    !oldPrice ||
+    oldPrice <= price
+  )
+    return 0;
+
+
+  return Math.round(
+    ((oldPrice - price) /
+      oldPrice) *
+      100
   );
 
 }
@@ -359,84 +538,11 @@ function renderHero() {
     return;
 
 
-  /*
-    Loading state
-  */
-
-  if (!productsLoaded) {
-
-    track.innerHTML = `
-
-      <div class="hero-slide">
-
-        <div class="hero-product-visual">
-
-          <div class="hero-product-circle">
-
-            <div
-              style="
-                font-size:52px;
-                animation:zolaPulse 1.5s infinite;
-              "
-            >
-              🎀
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="hero-slide-content">
-
-          <div class="hero-mini-label">
-            🎀 ZOLA'S CLOSET
-          </div>
-
-          <h1>
-            Loading cute
-            <span>little looks...</span>
-          </h1>
-
-          <p>
-            We're getting our collection ready for you.
-          </p>
-
-        </div>
-
-      </div>
-
-    `;
-
-    dots.innerHTML = "";
-
-    return;
-
-  }
-
-
-  /*
-    No featured products
-  */
-
   if (!featuredProducts.length) {
 
     track.innerHTML = `
 
       <div class="hero-slide">
-
-        <div class="hero-product-visual">
-
-          <div class="hero-product-circle">
-
-            <div style="font-size:52px;">
-              🎀
-            </div>
-
-          </div>
-
-        </div>
-
 
         <div class="hero-slide-content">
 
@@ -450,21 +556,8 @@ function renderHero() {
           </h1>
 
           <p>
-            Discover cute and comfortable outfits
-            made for little ones.
+            Our cute collection is coming soon.
           </p>
-
-          <div class="hero-slide-actions">
-
-            <a
-              href="#shop"
-              class="btn btn-primary">
-
-              Shop Now →
-
-            </a>
-
-          </div>
 
         </div>
 
@@ -480,8 +573,19 @@ function renderHero() {
 
 
   /*
-    Featured products
+    Make sure heroIndex
+    is still valid.
   */
+
+  if (
+    heroIndex >=
+    featuredProducts.length
+  ) {
+
+    heroIndex = 0;
+
+  }
+
 
   track.innerHTML =
     featuredProducts
@@ -494,12 +598,22 @@ function renderHero() {
 
               <div class="hero-product-circle">
 
-                <img
-                  src="${escapeHtml(product.image)}"
-                  alt="${escapeHtml(product.name)}"
-                  loading="${index === 0 ? "eager" : "lazy"}"
-                  onerror="this.style.display='none'"
-                >
+                ${
+                  product.image
+                    ? `
+                      <img
+                        src="${escapeHtml(product.image)}"
+                        alt="${escapeHtml(product.name)}"
+                        loading="${index === 0 ? "eager" : "lazy"}"
+                        onerror="this.style.display='none'"
+                      >
+                    `
+                    : `
+                      <div class="hero-no-image">
+                        🎀
+                      </div>
+                    `
+                }
 
               </div>
 
@@ -525,15 +639,32 @@ function renderHero() {
                 🎀 ZOLA'S PICK
               </div>
 
-
               <h1>
                 ${getHeroTitle(product, index)}
               </h1>
 
-
               <p>
                 ${escapeHtml(product.description)}
               </p>
+
+
+              <div class="hero-price">
+
+                <strong>
+                  ₱${product.price.toLocaleString()}
+                </strong>
+
+                ${
+                  product.oldPrice > product.price
+                    ? `
+                      <del>
+                        ₱${product.oldPrice.toLocaleString()}
+                      </del>
+                    `
+                    : ""
+                }
+
+              </div>
 
 
               <div class="hero-slide-actions">
@@ -593,6 +724,10 @@ function renderHero() {
 }
 
 
+/* =====================================================
+   HERO TITLE
+===================================================== */
+
 function getHeroTitle(
   product,
   index
@@ -639,6 +774,10 @@ function getHeroTitle(
 }
 
 
+/* =====================================================
+   UPDATE HERO
+===================================================== */
+
 function updateHero() {
 
   const track =
@@ -656,16 +795,6 @@ function updateHero() {
 
   if (!featuredProducts.length)
     return;
-
-
-  if (
-    heroIndex >=
-    featuredProducts.length
-  ) {
-
-    heroIndex = 0;
-
-  }
 
 
   track.style.transform =
@@ -686,6 +815,10 @@ function updateHero() {
 }
 
 
+/* =====================================================
+   HERO CONTROLS
+===================================================== */
+
 function nextHero() {
 
   if (!featuredProducts.length)
@@ -693,9 +826,7 @@ function nextHero() {
 
 
   heroIndex =
-    (
-      heroIndex + 1
-    ) %
+    (heroIndex + 1) %
     featuredProducts.length;
 
 
@@ -762,9 +893,7 @@ function startHeroTimer() {
       () => {
 
         heroIndex =
-          (
-            heroIndex + 1
-          ) %
+          (heroIndex + 1) %
           featuredProducts.length;
 
         updateHero();
@@ -784,7 +913,7 @@ function restartHeroTimer() {
 
 
 /* =====================================================
-   HERO CONTROLS
+   HERO DOM EVENTS
 ===================================================== */
 
 const heroNext =
@@ -851,68 +980,6 @@ function renderProducts() {
     return;
 
 
-  /*
-    Loading state
-  */
-
-  if (!productsLoaded) {
-
-    container.innerHTML = `
-
-      <div class="no-results">
-
-        <div style="font-size:42px;">
-          🎀
-        </div>
-
-        <h3>
-          Loading little looks...
-        </h3>
-
-        <p>
-          Please wait while we load our collection.
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  /*
-    No products
-  */
-
-  if (!products.length) {
-
-    container.innerHTML = `
-
-      <div class="no-results">
-
-        <div style="font-size:42px;">
-          🎀
-        </div>
-
-        <h3>
-          Little looks coming soon
-        </h3>
-
-        <p>
-          Our cute collection will be available here soon.
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
   const search =
     searchInput
       ? searchInput.value
@@ -933,9 +1000,6 @@ function renderProducts() {
 
         const searchMatch =
           product.name
-            .toLowerCase()
-            .includes(search) ||
-          product.description
             .toLowerCase()
             .includes(search);
 
@@ -960,11 +1024,19 @@ function renderProducts() {
         </div>
 
         <h3>
-          No little looks found
+          ${
+            products.length
+              ? "No little looks found"
+              : "Little looks coming soon"
+          }
         </h3>
 
         <p>
-          Try another search or category.
+          ${
+            products.length
+              ? "Try another search or category."
+              : "Our cute collection will be available here soon."
+          }
         </p>
 
       </div>
@@ -982,13 +1054,11 @@ function renderProducts() {
         product => {
 
           const isFavorite =
-            favorites.includes(
-              product.id
+            favorites.some(
+              id =>
+                String(id) ===
+                String(product.id)
             );
-
-
-          const outOfStock =
-            product.stock <= 0;
 
 
           return `
@@ -999,9 +1069,15 @@ function renderProducts() {
 
               <div class="product-image">
 
-                <div class="discount">
-                  -${product.discount}%
-                </div>
+                ${
+                  product.discount > 0
+                    ? `
+                      <div class="discount">
+                        -${product.discount}%
+                      </div>
+                    `
+                    : ""
+                }
 
 
                 <button
@@ -1010,29 +1086,29 @@ function renderProducts() {
                     ${isFavorite ? "active" : ""}
                   "
                   onclick="favoriteProduct(this, '${escapeJs(product.id)}')"
-                  type="button">
+                  type="button"
+                  aria-label="Add to favorites">
 
                   ♡
 
                 </button>
 
 
-                <img
-                  src="${escapeHtml(product.image)}"
-                  alt="${escapeHtml(product.name)}"
-                  loading="lazy"
-                  onerror="this.style.display='none'"
-                >
-
-
                 ${
-                  outOfStock
+                  product.image
                     ? `
-                      <div class="stock-badge">
-                        Sold Out
+                      <img
+                        src="${escapeHtml(product.image)}"
+                        alt="${escapeHtml(product.name)}"
+                        loading="lazy"
+                        onerror="this.style.display='none'"
+                      >
+                    `
+                    : `
+                      <div class="product-no-image">
+                        🎀
                       </div>
                     `
-                    : ""
                 }
 
               </div>
@@ -1057,7 +1133,7 @@ function renderProducts() {
                   </strong>
 
                   ${
-                    product.oldPrice > 0
+                    product.oldPrice > product.price
                       ? `
                         <del>
                           ₱${product.oldPrice.toLocaleString()}
@@ -1070,19 +1146,7 @@ function renderProducts() {
 
 
                 <div class="product-rating">
-                  ⭐ ${product.rating.toFixed(1)}
-                </div>
-
-
-                <div
-                  class="product-stock">
-
-                  ${
-                    outOfStock
-                      ? "Out of stock"
-                      : `${product.stock} available`
-                  }
-
+                  ⭐ ${product.rating}
                 </div>
 
 
@@ -1101,14 +1165,9 @@ function renderProducts() {
                   <button
                     class="add-cart"
                     onclick="addToCart('${escapeJs(product.id)}')"
-                    type="button"
-                    ${outOfStock ? "disabled" : ""}>
+                    type="button">
 
-                    ${
-                      outOfStock
-                        ? "Sold Out"
-                        : "🛍️ Add"
-                    }
+                    🛍️ Add
 
                   </button>
 
@@ -1128,17 +1187,28 @@ function renderProducts() {
 
 
 /* =====================================================
+   GET PRODUCT
+===================================================== */
+
+function getProductById(id) {
+
+  return products.find(
+    product =>
+      String(product.id) ===
+      String(id)
+  );
+
+}
+
+
+/* =====================================================
    PRODUCT MODAL
 ===================================================== */
 
 function viewProduct(id) {
 
   selectedProduct =
-    products.find(
-      product =>
-        String(product.id) ===
-        String(id)
-    );
+    getProductById(id);
 
 
   if (!selectedProduct) {
@@ -1215,20 +1285,26 @@ function renderProductDetails() {
     return;
 
 
-  const outOfStock =
-    product.stock <= 0;
-
-
   container.innerHTML = `
 
     <div class="product-detail">
 
       <div class="product-detail-image">
 
-        <img
-          src="${escapeHtml(product.image)}"
-          alt="${escapeHtml(product.name)}"
-        >
+        ${
+          product.image
+            ? `
+              <img
+                src="${escapeHtml(product.image)}"
+                alt="${escapeHtml(product.name)}"
+              >
+            `
+            : `
+              <div class="product-no-image">
+                🎀
+              </div>
+            `
+        }
 
       </div>
 
@@ -1240,9 +1316,15 @@ function renderProductDetails() {
         </div>
 
 
-        <div class="product-detail-discount">
-          -${product.discount}% OFF
-        </div>
+        ${
+          product.discount > 0
+            ? `
+              <div class="product-detail-discount">
+                -${product.discount}% OFF
+              </div>
+            `
+            : ""
+        }
 
 
         <h2>
@@ -1252,8 +1334,7 @@ function renderProductDetails() {
 
         <div class="product-detail-rating">
           ⭐⭐⭐⭐⭐
-          ${product.rating.toFixed(1)}
-          · Customer Reviews
+          ${product.rating}
         </div>
 
 
@@ -1268,7 +1349,7 @@ function renderProductDetails() {
 
 
         ${
-          product.oldPrice > 0
+          product.oldPrice > product.price
             ? `
               <div class="product-detail-old-price">
                 ₱${product.oldPrice.toLocaleString()}
@@ -1278,66 +1359,73 @@ function renderProductDetails() {
         }
 
 
-        <div class="product-detail-stock">
-
-          ${
-            outOfStock
-              ? "❌ Out of stock"
-              : `✓ ${product.stock} pieces available`
-          }
-
-        </div>
-
-
         ${
-          !outOfStock
+          product.color
             ? `
-              <div class="product-quantity">
-
-                <strong>
-                  Quantity:
-                </strong>
-
-
-                <button
-                  onclick="changeProductQuantity(-1)"
-                  type="button">
-
-                  −
-
-                </button>
-
-
-                <span id="productQuantity">
-                  1
-                </span>
-
-
-                <button
-                  onclick="changeProductQuantity(1)"
-                  type="button">
-
-                  +
-
-                </button>
-
+              <div class="product-detail-option">
+                <strong>Color:</strong>
+                ${escapeHtml(product.color)}
               </div>
             `
             : ""
         }
 
 
+        ${
+          product.sizes.length
+            ? `
+              <div class="product-detail-option">
+                <strong>Available Sizes:</strong>
+                ${product.sizes
+                  .map(
+                    size =>
+                      `<span>${escapeHtml(size)}</span>`
+                  )
+                  .join(" ")}
+              </div>
+            `
+            : ""
+        }
+
+
+        <div class="product-quantity">
+
+          <strong>
+            Quantity:
+          </strong>
+
+
+          <button
+            onclick="changeProductQuantity(-1)"
+            type="button">
+
+            −
+
+          </button>
+
+
+          <span id="productQuantity">
+            1
+          </span>
+
+
+          <button
+            onclick="changeProductQuantity(1)"
+            type="button">
+
+            +
+
+          </button>
+
+        </div>
+
+
         <button
           class="product-buy"
           onclick="addSelectedProductToCart()"
-          type="button"
-          ${outOfStock ? "disabled" : ""}>
+          type="button">
 
-          ${
-            outOfStock
-              ? "Sold Out"
-              : "🛍️ Add to Bag"
-          }
+          🛍️ Add to Bag
 
         </button>
 
@@ -1358,22 +1446,6 @@ function changeProductQuantity(
   amount
 ) {
 
-  if (!selectedProduct)
-    return;
-
-
-  const maxStock =
-    Math.min(
-      99,
-      Math.max(
-        1,
-        Number(
-          selectedProduct.stock || 1
-        )
-      )
-    );
-
-
   selectedQuantity += amount;
 
 
@@ -1381,16 +1453,8 @@ function changeProductQuantity(
     selectedQuantity = 1;
 
 
-  if (selectedQuantity > maxStock) {
-
-    selectedQuantity =
-      maxStock;
-
-    showToast(
-      `Only ${maxStock} available.`
-    );
-
-  }
+  if (selectedQuantity > 99)
+    selectedQuantity = 99;
 
 
   const quantityElement =
@@ -1417,44 +1481,12 @@ function addSelectedProductToCart() {
     return;
 
 
-  if (selectedProduct.stock <= 0) {
-
-    showToast(
-      "This product is sold out."
-    );
-
-    return;
-
-  }
-
-
   const existing =
     cart.find(
       item =>
         String(item.id) ===
         String(selectedProduct.id)
     );
-
-
-  const currentQuantity =
-    existing
-      ? Number(existing.quantity)
-      : 0;
-
-
-  if (
-    currentQuantity +
-    selectedQuantity >
-    selectedProduct.stock
-  ) {
-
-    showToast(
-      `Only ${selectedProduct.stock} available.`
-    );
-
-    return;
-
-  }
 
 
   if (existing) {
@@ -1497,95 +1529,52 @@ function addSelectedProductToCart() {
 
 
 /* =====================================================
-   CART
+   CART NORMALIZE
 ===================================================== */
 
 function normalizeCart() {
 
   cart =
     cart
-      .map(
-        item => {
+      .filter(item => {
 
-          const product =
-            products.find(
-              p =>
-                String(p.id) ===
-                String(item.id)
-            );
+        const product =
+          getProductById(item.id);
 
 
-          if (!product)
-            return null;
+        return (
+          product &&
+          Number(item.quantity) > 0
+        );
 
+      })
+      .map(item => ({
 
-          const quantity =
-            Number(
-              item.quantity
-            );
+        id:
+          item.id,
 
+        quantity:
+          Math.min(
+            99,
+            Math.max(
+              1,
+              Number(item.quantity)
+            )
+          )
 
-          if (
-            !Number.isFinite(quantity) ||
-            quantity <= 0 ||
-            product.stock <= 0
-          ) {
-
-            return null;
-
-          }
-
-
-          return {
-
-            id:
-              product.id,
-
-            quantity:
-              Math.min(
-                99,
-                product.stock,
-                Math.max(
-                  1,
-                  quantity
-                )
-              )
-
-          };
-
-        }
-      )
-      .filter(Boolean);
+      }));
 
 }
 
 
-function saveCart() {
-
-  normalizeCart();
-
-
-  localStorage.setItem(
-    "zolas-cart",
-    JSON.stringify(cart)
-  );
-
-
-  renderCart();
-
-  updateCartCount();
-
-}
-
+/* =====================================================
+   ADD TO CART
+===================================================== */
 
 function addToCart(id) {
 
   const product =
-    products.find(
-      p =>
-        String(p.id) ===
-        String(id)
-    );
+    getProductById(id);
 
 
   if (!product) {
@@ -1599,10 +1588,12 @@ function addToCart(id) {
   }
 
 
-  if (product.stock <= 0) {
+  if (
+    product.stock <= 0
+  ) {
 
     showToast(
-      "This product is sold out."
+      "This product is currently out of stock."
     );
 
     return;
@@ -1618,27 +1609,21 @@ function addToCart(id) {
     );
 
 
-  const currentQuantity =
-    existing
-      ? Number(existing.quantity)
-      : 0;
-
-
-  if (
-    currentQuantity >=
-    product.stock
-  ) {
-
-    showToast(
-      `Only ${product.stock} available.`
-    );
-
-    return;
-
-  }
-
-
   if (existing) {
+
+    if (
+      existing.quantity >= 99 ||
+      existing.quantity >= product.stock
+    ) {
+
+      showToast(
+        "Maximum available quantity reached."
+      );
+
+      return;
+
+    }
+
 
     existing.quantity++;
 
@@ -1666,6 +1651,10 @@ function addToCart(id) {
 
 }
 
+
+/* =====================================================
+   CART COUNT
+===================================================== */
 
 function updateCartCount() {
 
@@ -1759,11 +1748,7 @@ function renderCart() {
         item => {
 
           const product =
-            products.find(
-              p =>
-                String(p.id) ===
-                String(item.id)
-            );
+            getProductById(item.id);
 
 
           if (!product)
@@ -1784,11 +1769,21 @@ function renderCart() {
 
               <div class="cart-item-image">
 
-                <img
-                  src="${escapeHtml(product.image)}"
-                  alt="${escapeHtml(product.name)}"
-                  loading="lazy"
-                >
+                ${
+                  product.image
+                    ? `
+                      <img
+                        src="${escapeHtml(product.image)}"
+                        alt="${escapeHtml(product.name)}"
+                        loading="lazy"
+                      >
+                    `
+                    : `
+                      <div class="product-no-image">
+                        🎀
+                      </div>
+                    `
+                }
 
               </div>
 
@@ -1867,6 +1862,10 @@ function renderCart() {
 }
 
 
+/* =====================================================
+   CHANGE CART QUANTITY
+===================================================== */
+
 function changeQuantity(
   id,
   amount
@@ -1885,23 +1884,28 @@ function changeQuantity(
 
 
   const product =
-    products.find(
-      p =>
-        String(p.id) ===
-        String(id)
+    getProductById(id);
+
+
+  item.quantity += amount;
+
+
+  if (
+    product &&
+    item.quantity > product.stock
+  ) {
+
+    item.quantity =
+      product.stock;
+
+    showToast(
+      "Maximum available stock reached."
     );
 
-
-  if (!product)
-    return;
+  }
 
 
-  const newQuantity =
-    Number(item.quantity) +
-    amount;
-
-
-  if (newQuantity <= 0) {
+  if (item.quantity <= 0) {
 
     cart =
       cart.filter(
@@ -1909,40 +1913,6 @@ function changeQuantity(
           String(i.id) !==
           String(id)
       );
-
-    saveCart();
-
-    return;
-
-  }
-
-
-  if (
-    newQuantity >
-    product.stock
-  ) {
-
-    showToast(
-      `Only ${product.stock} available.`
-    );
-
-    return;
-
-  }
-
-
-  if (newQuantity > 99) {
-
-    item.quantity = 99;
-
-    showToast(
-      "Maximum quantity reached."
-    );
-
-  } else {
-
-    item.quantity =
-      newQuantity;
 
   }
 
@@ -1952,14 +1922,14 @@ function changeQuantity(
 }
 
 
+/* =====================================================
+   REMOVE FROM CART
+===================================================== */
+
 function removeFromCart(id) {
 
   const product =
-    products.find(
-      p =>
-        String(p.id) ===
-        String(id)
-    );
+    getProductById(id);
 
 
   cart =
@@ -1983,7 +1953,7 @@ function removeFromCart(id) {
 
 
 /* =====================================================
-   OPEN / CLOSE CART
+   OPEN CART
 ===================================================== */
 
 function openCart() {
@@ -2005,6 +1975,10 @@ function openCart() {
 
 }
 
+
+/* =====================================================
+   CLOSE CART
+===================================================== */
 
 function closeCart() {
 
@@ -2071,6 +2045,10 @@ function startCheckout() {
 }
 
 
+/* =====================================================
+   CLOSE CHECKOUT
+===================================================== */
+
 function closeCheckout() {
 
   const overlay =
@@ -2078,13 +2056,15 @@ function closeCheckout() {
 
 
   if (overlay)
-    overlay.classList.remove("show");
+    overlay.classList.remove(
+      "show"
+    );
 
 }
 
 
 /* =====================================================
-   CHECKOUT RENDER
+   RENDER CHECKOUT
 ===================================================== */
 
 function renderCheckout() {
@@ -2106,11 +2086,7 @@ function renderCheckout() {
         item => {
 
           const product =
-            products.find(
-              p =>
-                String(p.id) ===
-                String(item.id)
-            );
+            getProductById(item.id);
 
 
           if (!product)
@@ -2196,6 +2172,10 @@ function renderCheckout() {
 }
 
 
+/* =====================================================
+   UPDATE CHECKOUT TOTAL
+===================================================== */
+
 function updateCheckoutTotal() {
 
   let subtotal = 0;
@@ -2205,11 +2185,7 @@ function updateCheckoutTotal() {
     item => {
 
       const product =
-        products.find(
-          p =>
-            String(p.id) ===
-            String(item.id)
-        );
+        getProductById(item.id);
 
 
       if (product) {
@@ -2364,29 +2340,11 @@ async function placeOrder() {
         item => {
 
           const product =
-            products.find(
-              p =>
-                String(p.id) ===
-                String(item.id)
-            );
+            getProductById(item.id);
 
 
           if (!product)
             return null;
-
-
-          /*
-            Check stock again before order
-          */
-
-          if (
-            item.quantity >
-            product.stock
-          ) {
-
-            return null;
-
-          }
 
 
           const itemTotal =
@@ -2563,7 +2521,7 @@ async function placeOrder() {
 
 
 /* =====================================================
-   CHECKOUT BUTTON LOADING
+   CHECKOUT LOADING
 ===================================================== */
 
 function setCheckoutButtonLoading(
@@ -2689,6 +2647,10 @@ function showOrderSuccess(
 
 }
 
+
+/* =====================================================
+   FINISH ORDER
+===================================================== */
 
 function finishOrder() {
 
@@ -2819,9 +2781,7 @@ function showToast(message) {
 
 function escapeHtml(value) {
 
-  return String(
-    value ?? ""
-  )
+  return String(value ?? "")
 
     .replace(
       /&/g,
@@ -2852,14 +2812,12 @@ function escapeHtml(value) {
 
 
 /* =====================================================
-   ESCAPE JAVASCRIPT STRING
+   ESCAPE JAVASCRIPT
 ===================================================== */
 
 function escapeJs(value) {
 
-  return String(
-    value ?? ""
-  )
+  return String(value ?? "")
     .replace(
       /\\/g,
       "\\\\"
@@ -2871,10 +2829,6 @@ function escapeJs(value) {
     .replace(
       /"/g,
       '\\"'
-    )
-    .replace(
-      /\r?\n/g,
-      "\\n"
     );
 
 }
@@ -4033,7 +3987,7 @@ function getFirebaseErrorMessage(
       return "Your browser blocked the Google sign-in popup.";
 
     case "auth/unauthorized-domain":
-      return "This website domain is not authorized in Firebase.";
+      return "This website is not authorized in Firebase Authentication.";
 
     case "auth/network-request-failed":
       return "Network error. Please check your internet connection.";
@@ -4135,19 +4089,13 @@ window.loginWithGoogle =
 
 normalizeCart();
 
-renderHero();
-
-renderProducts();
-
 renderCart();
 
 updateCartCount();
 
 updateAuthUI();
 
-startHeroTimer();
-
-loadProductsFromFirebase();
+loadProducts();
 
 
 /* =====================================================
@@ -4163,7 +4111,7 @@ console.log(
 );
 
 console.log(
-  "🔥 Firebase products loading enabled."
+  "🔥 Firebase product database enabled."
 );
 
 console.log(

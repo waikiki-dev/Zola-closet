@@ -1,27 +1,46 @@
 /* =====================================================
    ZOLA'S CLOSET
    FIREBASE CONFIGURATION
+   Firebase Auth + Realtime Database
 ===================================================== */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+/* =====================================================
+   FIREBASE CORE
+===================================================== */
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+
+
+/* =====================================================
+   FIREBASE AUTHENTICATION
+===================================================== */
 
 import {
   getAuth,
   GoogleAuthProvider,
+
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   updateProfile,
   onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+
+
+/* =====================================================
+   FIREBASE REALTIME DATABASE
+===================================================== */
 
 import {
   getDatabase,
   ref,
   set,
   get
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-database.js";
 
 
 /* =====================================================
@@ -31,10 +50,13 @@ import {
 const firebaseConfig = {
 
   apiKey:
-    "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
+    "AIzaSyC1SI1SKfGwkCHpKo7pTelBpwMe4kF7QSQ",
 
   authDomain:
     "zola-closet.firebaseapp.com",
+
+  databaseURL:
+    "https://zola-closet-default-rtdb.asia-southeast1.firebasedatabase.app/",
 
   projectId:
     "zola-closet",
@@ -63,7 +85,7 @@ const app =
 
 
 /* =====================================================
-   AUTH
+   INITIALIZE AUTH
 ===================================================== */
 
 const auth =
@@ -71,7 +93,7 @@ const auth =
 
 
 /* =====================================================
-   GOOGLE AUTH
+   GOOGLE PROVIDER
 ===================================================== */
 
 const googleProvider =
@@ -79,7 +101,7 @@ const googleProvider =
 
 
 /* =====================================================
-   REALTIME DATABASE
+   INITIALIZE REALTIME DATABASE
 ===================================================== */
 
 const database =
@@ -87,34 +109,42 @@ const database =
 
 
 /* =====================================================
-   EXPORT
+   EXPORT EVERYTHING NEEDED BY script.js
 ===================================================== */
 
 export {
 
+  /* Firebase */
+
   app,
-
   auth,
-
   database,
+
+  /* Google */
 
   googleProvider,
 
+  /* Realtime Database */
+
   ref,
-
   set,
-
   get,
 
-  createUserWithEmailAndPassword,
+  /* Email / Password Auth */
 
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+
+  /* Google Auth */
 
   signInWithPopup,
 
-  signOut,
+  /* Account */
 
+  signOut,
   updateProfile,
+
+  /* Auth State */
 
   onAuthStateChanged
 

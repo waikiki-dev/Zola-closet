@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Zola's Closet — cute and stylish kids wear for every little one."
+  >
+
+  <title>Zola's Closet | Kids Wear</title>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- =====================================================
+       PROMO BAR
+  ====================================================== -->
+
+  <div class="promo">
+    ✨ Welcome to Zola's Closet — Cute styles for little ones!
+  </div>
+
+
+  <!-- =====================================================
+       NAVIGATION
+  ====================================================== -->
+
+  <header>
+
+    <nav class="navbar">
+
+      <a href="#" class="logo">
+        Zola's<span>Closet</span>
+      </a>
+
+
+      <div class="nav-links">
+
+        <a href="#shop">Shop</a>
+        <a href="#benefits">Why Us</a>
+        <a href="#about">About</a>
+
+      </div>
+
+
+      <div class="nav-actions">
+
+        <!-- THEME -->
+
+        <button
+          class="icon-btn"
+          id="themeBtn"
+          aria-label="Toggle theme"
+          type="button">
+
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <path d="M21 12.79A9 9 0 1 1 11.21 3
+                     7 7 0 0 0 21 12.79Z"/>
+
+          </svg>
+
+        </button>
+
+
+        <!-- PROFILE -->
+
+        <button
+          class="icon-btn"
+          id="profileBtn"
+          aria-label="Account"
+          type="button">
+
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="12" cy="8" r="4"/>
+
+            <path d="M4 21
+                     C4.8 16.8 7.5 14 12 14
+                     C16.5 14 19.2 16.8 20 21"/>
+
+          </svg>
+
+        </button>
+
+
+        <!-- CART -->
+
+        <button
+          class="icon-btn"
+          id="cartBtn"
+          aria-label="Shopping cart"
+          type="button">
+
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="9" cy="20" r="1"/>
+            <circle cx="18" cy="20" r="1"/>
+
+            <path d="M3 4h2l2.4 11.2
+                     A2 2 0 0 0 9.35 17h8.9
+                     A2 2 0 0 0 20.2 15.5L22 8H6"/>
+
+          </svg>
+
+
+          <span
+            class="cart-count"
+            id="cartCount">
+            0
+          </span>
+
+        </button>
+
+      </div>
+
+    </nav>
+
+  </header>
+
+
+  <!-- =====================================================
+       HERO
+  ====================================================== -->
+
+  <section class="hero">
+
+    <div
+      class="hero-slider"
+      id="heroSlider">
+
+      <div
+        class="hero-track"
+        id="heroTrack">
+      </div>
+
+
+      <button
+        class="hero-slider-arrow hero-prev"
+        id="heroPrev"
+        aria-label="Previous product">
+        ‹
+      </button>
+
+
+      <button
+        class="hero-slider-arrow hero-next"
+        id="heroNext"
+        aria-label="Next product">
+        ›
+      </button>
+
+
+      <div
+        class="hero-dots"
+        id="heroDots">
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       SHOP
+  ====================================================== -->
+
+  <section
+    class="section"
+    id="shop">
+
+    <div class="section-title">
+
+      <small>ZOLA'S CLOSET</small>
+
+      <h2>Shop Kids Wear</h2>
+
+      <p>
+        Cute, comfy and stylish pieces made for little ones.
+      </p>
+
+    </div>
+
+
+    <div class="shop-toolbar">
+
+      <div class="search-box">
+
+        <svg
+          class="search-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+
+          <circle cx="11" cy="11" r="7"/>
+
+          <path d="m20 20-4-4"/>
+
+        </svg>
+
+
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Search kids wear...">
+
+      </div>
+
+
+      <div class="categories">
+
+        <button
+          class="category active"
+          data-category="all">
+          All
+        </button>
+
+        <button
+          class="category"
+          data-category="girls">
+          Girls
+        </button>
+
+        <button
+          class="category"
+          data-category="boys">
+          Boys
+        </button>
+
+        <button
+          class="category"
+          data-category="baby">
+          Baby
+        </button>
+
+        <button
+          class="category"
+          data-category="sets">
+          Sets
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="products"
+      id="products">
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       BENEFITS
+  ====================================================== -->
+
+  <section
+    class="section"
+    id="benefits">
+
+    <div class="section-title">
+
+      <small>WHY ZOLA'S CLOSET</small>
+
+      <h2>Made for Little Ones</h2>
+
+    </div>
+
+
+    <div class="benefits">
+
+      <div class="benefit">
+
+        <div class="benefit-icon">
+          🚚
+        </div>
+
+        <h3>Fast Delivery</h3>
+
+        <p>
+          We aim to get your little one's
+          new outfits to you quickly and safely.
+        </p>
+
+      </div>
+
+
+      <div class="benefit">
+
+        <div class="benefit-icon">
+          ✨
+        </div>
+
+        <h3>Cute & Comfy</h3>
+
+        <p>
+          Carefully selected styles designed
+          for comfort and everyday adventures.
+        </p>
+
+      </div>
+
+
+      <div class="benefit">
+
+        <div class="benefit-icon">
+          ♡
+        </div>
+
+        <h3>Made With Love</h3>
+
+        <p>
+          We're building Zola's Closet around
+          parents and their little ones.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       ABOUT
+  ====================================================== -->
+
+  <section
+    class="section"
+    id="about">
+
+    <div class="section-title">
+
+      <small>ABOUT ZOLA'S CLOSET</small>
+
+      <h2>Little Styles, Big Smiles</h2>
+
+      <p>
+        Discover cute and comfortable kids wear
+        made for everyday moments, playtime and special days.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       PRODUCT MODAL
+  ====================================================== -->
+
+  <div
+    class="product-modal-overlay"
+    id="productModal">
+
+    <div class="product-modal">
+
+      <button
+        class="product-modal-close"
+        onclick="closeProduct()"
+        aria-label="Close product">
+
+        ✕
+
+      </button>
+
+
+      <div id="productDetails"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CART
+  ====================================================== -->
+
+  <div
+    class="cart-overlay"
+    id="cartOverlay">
+
+    <div class="cart">
+
+      <div class="cart-header">
+
+        <h2>Your Cart</h2>
+
+        <button
+          class="close-cart"
+          onclick="closeCart()">
+
+          ✕
+
+        </button>
+
+      </div>
+
+
+      <div
+        class="cart-items"
+        id="cartItems">
+      </div>
+
+
+      <div class="cart-footer">
+
+        <div class="total-row">
+
+          <span>Total</span>
+
+          <span id="cartTotal">
+            ₱0
+          </span>
+
+        </div>
+
+
+        <button
+          class="checkout"
+          onclick="startCheckout()">
+
+          Proceed to Checkout →
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       AUTH MODAL
+  ====================================================== -->
+
+  <div
+    class="auth-overlay"
+    id="authOverlay">
+
+    <div class="auth-modal">
+
+      <button
+        class="auth-close"
+        id="authClose"
+        aria-label="Close">
+
+        ✕
+
+      </button>
+
+
+      <!-- LOGIN -->
+
+      <div
+        class="auth-view"
+        id="loginView">
+
+        <div class="auth-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="12" cy="8" r="4"/>
+
+            <path d="M4 21
+                     C4.8 16.8 7.5 14 12 14
+                     C16.5 14 19.2 16.8 20 21"/>
+
+          </svg>
+
+        </div>
+
+
+        <h2>Welcome Back</h2>
+
+        <p class="auth-subtitle">
+          Sign in to continue to Zola's Closet.
+        </p>
+
+
+        <form id="loginForm">
+
+          <div class="auth-form-group">
+
+            <label>Email Address</label>
+
+            <input
+              id="loginEmail"
+              type="email"
+              placeholder="you@example.com"
+              required>
+
+          </div>
+
+
+          <div class="auth-form-group">
+
+            <label>Password</label>
+
+            <input
+              id="loginPassword"
+              type="password"
+              placeholder="••••••••"
+              required>
+
+          </div>
+
+
+          <button
+            class="auth-submit"
+            type="submit">
+
+            Sign In
+
+          </button>
+
+        </form>
+
+
+        <p class="auth-switch">
+
+          Don't have an account?
+
+          <button
+            type="button"
+            id="showRegister">
+
+            Create one
+
+          </button>
+
+        </p>
+
+      </div>
+
+
+      <!-- REGISTER -->
+
+      <div
+        class="auth-view hidden"
+        id="registerView">
+
+        <div class="auth-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="12" cy="8" r="4"/>
+
+            <path d="M4 21
+                     C4.8 16.8 7.5 14 12 14
+                     C16.5 14 19.2 16.8 20 21"/>
+
+            <path d="M19 3v5"/>
+            <path d="M16.5 5.5h5"/>
+
+          </svg>
+
+        </div>
+
+
+        <h2>Create Account</h2>
+
+        <p class="auth-subtitle">
+          Join Zola's Closet and shop with ease.
+        </p>
+
+
+        <form id="registerForm">
+
+          <div class="auth-form-group">
+
+            <label>Full Name</label>
+
+            <input
+              id="registerName"
+              type="text"
+              placeholder="Juan Dela Cruz"
+              required>
+
+          </div>
+
+
+          <div class="auth-form-group">
+
+            <label>Email Address</label>
+
+            <input
+              id="registerEmail"
+              type="email"
+              placeholder="you@example.com"
+              required>
+
+          </div>
+
+
+          <div class="auth-form-group">
+
+            <label>Password</label>
+
+            <input
+              id="registerPassword"
+              type="password"
+              placeholder="Create a password"
+              minlength="6"
+              required>
+
+          </div>
+
+
+          <button
+            class="auth-submit"
+            type="submit">
+
+            Create Account
+
+          </button>
+
+        </form>
+
+
+        <p class="auth-switch">
+
+          Already have an account?
+
+          <button
+            type="button"
+            id="showLogin">
+
+            Sign in
+
+          </button>
+
+        </p>
+
+      </div>
+
+
+      <!-- ACCOUNT -->
+
+      <div
+        class="auth-view hidden"
+        id="accountView">
+
+        <div class="auth-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="12" cy="8" r="4"/>
+
+            <path d="M4 21
+                     C4.8 16.8 7.5 14 12 14
+                     C16.5 14 19.2 16.8 20 21"/>
+
+          </svg>
+
+        </div>
+
+
+        <h2 id="accountName">
+          Welcome!
+        </h2>
+
+        <p
+          class="auth-subtitle"
+          id="accountEmail">
+        </p>
+
+
+        <button
+          class="auth-submit logout-btn"
+          id="logoutBtn">
+
+          Sign Out
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       CHECKOUT
+  ====================================================== -->
+
+  <div
+    class="checkout-overlay"
+    id="checkoutOverlay">
+
+    <div
+      class="checkout-modal"
+      id="checkoutContent">
+
+      <div class="checkout-header">
+
+        <h2>Checkout</h2>
+
+        <button
+          class="checkout-close"
+          onclick="closeCheckout()">
+
+          ✕
+
+        </button>
+
+      </div>
+
+
+      <div class="checkout-grid">
+
+        <div>
+
+          <div class="checkout-section">
+
+            <h3>Contact Information</h3>
+
+            <div class="form-group">
+
+              <label>Full Name</label>
+
+              <input
+                id="customerName"
+                type="text"
+                placeholder="Juan Dela Cruz">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Email Address</label>
+
+              <input
+                id="customerEmail"
+                type="email"
+                placeholder="you@example.com">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Phone Number</label>
+
+              <input
+                id="customerPhone"
+                type="tel"
+                placeholder="09XXXXXXXXX">
+
+            </div>
+
+          </div>
+
+
+          <div class="checkout-section">
+
+            <h3>Delivery Address</h3>
+
+            <div class="form-group">
+
+              <label>Address</label>
+
+              <input
+                id="customerAddress"
+                type="text"
+                placeholder="House number, street">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>City / Municipality</label>
+
+              <input
+                id="customerCity"
+                type="text"
+                placeholder="City">
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>Province</label>
+
+              <input
+                id="customerProvince"
+                type="text"
+                placeholder="Province">
+
+            </div>
+
+          </div>
+
+
+          <div class="checkout-section">
+
+            <h3>Shipping</h3>
+
+            <div class="form-group">
+
+              <select id="shippingMethod">
+
+                <option value="0">
+                  Standard Shipping — FREE
+                </option>
+
+                <option value="99">
+                  Express Shipping — ₱99
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <div class="checkout-section">
+
+            <h3>Payment Method</h3>
+
+            <div class="form-group">
+
+              <select id="paymentMethod">
+
+                <option>
+                  Cash on Delivery
+                </option>
+
+                <option>
+                  GCash
+                </option>
+
+                <option>
+                  Maya
+                </option>
+
+                <option>
+                  Bank Transfer
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="checkout-summary">
+
+          <h3>Order Summary</h3>
+
+          <div id="checkoutItems"></div>
+
+          <div class="summary-line"></div>
+
+
+          <div class="summary-item">
+
+            <span>Subtotal</span>
+
+            <strong id="checkoutSubtotal">
+              ₱0
+            </strong>
+
+          </div>
+
+
+          <div class="summary-item">
+
+            <span>Shipping</span>
+
+            <strong id="checkoutShipping">
+              FREE
+            </strong>
+
+          </div>
+
+
+          <div class="summary-line"></div>
+
+
+          <div class="summary-total">
+
+            <span>Total</span>
+
+            <span id="checkoutTotal">
+              ₱0
+            </span>
+
+          </div>
+
+
+          <button
+            class="place-order"
+            onclick="placeOrder()">
+
+            Place Order →
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div
+    class="toast"
+    id="toast">
+    Added to cart
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <footer>
+
+    <div class="footer-logo">
+      Zola's<span>Closet</span>
+    </div>
+
+    <p>
+      Cute styles for little ones.
+    </p>
+
+    <br>
+
+    <p>
+      © 2026 Zola's Closet · All Rights Reserved
+    </p>
+
+  </footer>
+
+
+  <!-- IMPORTANT: FIXED SCRIPT PATH -->
+
+  <script src="js/script.js"></script>
+
+</body>
+</html>

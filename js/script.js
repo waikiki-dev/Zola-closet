@@ -2,6 +2,7 @@
    ZOLA'S CLOSET
    KIDS WEAR STORE
    FIREBASE VERSION
+   UPDATED PRODUCTION-READY FRONTEND
 ===================================================== */
 
 import {
@@ -22,7 +23,7 @@ import {
 
 /* =====================================================
    PRODUCT DATABASE
-   TEMPORARY PRODUCT DATA
+   TEMPORARY FRONTEND DATA
    LATER: FIREBASE / FIRESTORE
 ===================================================== */
 
@@ -136,62 +137,110 @@ const products = [
 
 
 /* =====================================================
-   HERO
+   APP STATE
 ===================================================== */
 
-const featuredProducts = products.slice(0, 5);
+const featuredProducts =
+  products.slice(0, 5);
 
 let heroIndex = 0;
 let heroTimer = null;
 
-
-/* =====================================================
-   CART
-===================================================== */
-
-let cart =
-  JSON.parse(
-    localStorage.getItem("zolas-cart")
-  ) || [];
-
-
-/* =====================================================
-   FILTER
-===================================================== */
-
 let currentCategory = "all";
-
-
-/* =====================================================
-   PRODUCT DETAILS
-===================================================== */
 
 let selectedProduct = null;
 let selectedQuantity = 1;
 
-
-/* =====================================================
-   FIREBASE USER
-===================================================== */
-
 let currentUser = null;
 
+let isPlacingOrder = false;
+
 
 /* =====================================================
-   AUTH ELEMENTS
+   LOCAL STORAGE
 ===================================================== */
 
+let cart =
+  loadLocalStorage(
+    "zolas-cart",
+    []
+  );
+
+let favorites =
+  loadLocalStorage(
+    "zolas-favorites",
+    []
+  );
+
+
+/* =====================================================
+   DOM HELPERS
+===================================================== */
+
+const $ = id =>
+  document.getElementById(id);
+
 const authOverlay =
-  document.getElementById("authOverlay");
+  $("authOverlay");
 
 const loginView =
-  document.getElementById("loginView");
+  $("loginView");
 
 const registerView =
-  document.getElementById("registerView");
+  $("registerView");
 
 const accountView =
-  document.getElementById("accountView");
+  $("accountView");
+
+
+/* =====================================================
+   LOCAL STORAGE HELPER
+===================================================== */
+
+function loadLocalStorage(
+  key,
+  fallback
+) {
+
+  try {
+
+    const value =
+      localStorage.getItem(key);
+
+    if (!value)
+      return fallback;
+
+    const parsed =
+      JSON.parse(value);
+
+    return parsed;
+
+  } catch (error) {
+
+    console.warn(
+      `Unable to load ${key}:`,
+      error
+    );
+
+    return fallback;
+
+  }
+
+}
+
+
+/* =====================================================
+   SAVE FAVORITES
+===================================================== */
+
+function saveFavorites() {
+
+  localStorage.setItem(
+    "zolas-favorites",
+    JSON.stringify(favorites)
+  );
+
+}
 
 
 /* =====================================================
@@ -201,79 +250,90 @@ const accountView =
 function renderHero() {
 
   const track =
-    document.getElementById("heroTrack");
+    $("heroTrack");
 
   const dots =
-    document.getElementById("heroDots");
+    $("heroDots");
 
-  if (!track || !dots) return;
+  if (!track || !dots)
+    return;
+
 
   track.innerHTML =
     featuredProducts
       .map(
         (product, index) => `
 
-        <div class="hero-slide">
+          <div class="hero-slide">
 
-          <div class="hero-product-visual">
+            <div class="hero-product-visual">
 
-            <div class="hero-product-circle">
+              <div class="hero-product-circle">
 
-              <img
-                src="${product.image}"
-                alt="${escapeHtml(product.name)}">
+                <img
+                  src="${escapeHtml(product.image)}"
+                  alt="${escapeHtml(product.name)}"
+                  loading="${index === 0 ? "eager" : "lazy"}"
+                  onerror="this.style.display='none'"
+                >
+
+              </div>
+
+              <div class="hero-discount-badge">
+
+                <strong>
+                  -${product.discount}%
+                </strong>
+
+                <span>
+                  OFF
+                </span>
+
+              </div>
 
             </div>
 
-            <div class="hero-discount-badge">
 
-              <strong>
-                -${product.discount}%
-              </strong>
+            <div class="hero-slide-content">
 
-              <span>
-                OFF
-              </span>
+              <div class="hero-mini-label">
+                🎀 ZOLA'S PICK
+              </div>
+
+              <h1>
+                ${getHeroTitle(product, index)}
+              </h1>
+
+              <p>
+                ${escapeHtml(product.description)}
+              </p>
+
+              <div class="hero-slide-actions">
+
+                <button
+                  class="btn btn-primary"
+                  onclick="viewProduct(${product.id})"
+                  type="button">
+
+                  View Outfit →
+
+                </button>
+
+
+                <button
+                  class="btn btn-secondary"
+                  onclick="addToCart(${product.id})"
+                  type="button">
+
+                  🛍️ Add to Bag
+
+                </button>
+
+              </div>
 
             </div>
 
           </div>
-
-
-          <div class="hero-slide-content">
-
-            <div class="hero-mini-label">
-              🎀 ZOLA'S PICK
-            </div>
-
-            <h1>
-              ${getHeroTitle(product, index)}
-            </h1>
-
-            <div class="hero-slide-actions">
-
-              <button
-                class="btn btn-primary"
-                onclick="viewProduct(${product.id})">
-
-                View Outfit →
-
-              </button>
-
-
-              <button
-                class="btn btn-secondary"
-                onclick="addToCart(${product.id})">
-
-                🛍️ Add to Bag
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
 
         `
       )
@@ -285,17 +345,15 @@ function renderHero() {
       .map(
         (product, index) => `
 
-        <button
-          class="
-            hero-dot
-            ${index === 0 ? "active" : ""}
-          "
-          onclick="goToHero(${index})"
-          aria-label="
-            Go to featured product
-            ${index + 1}
-          ">
-        </button>
+          <button
+            class="
+              hero-dot
+              ${index === heroIndex ? "active" : ""}
+            "
+            onclick="goToHero(${index})"
+            aria-label="Go to featured product ${index + 1}"
+            type="button">
+          </button>
 
         `
       )
@@ -311,42 +369,46 @@ function renderHero() {
    HERO TITLES
 ===================================================== */
 
-function getHeroTitle(product, index) {
+function getHeroTitle(
+  product,
+  index
+) {
 
   const titles = [
 
     `
-    Sweet Dresses.
-    <span>Big Little Smiles.</span>
+      Sweet Dresses.
+      <span>Big Little Smiles.</span>
     `,
 
     `
-    Cute Everyday Looks.
-    <span>Made for Play.</span>
+      Cute Everyday Looks.
+      <span>Made for Play.</span>
     `,
 
     `
-    Little Style.
-    <span>Big Personality.</span>
+      Little Style.
+      <span>Big Personality.</span>
     `,
 
     `
-    Soft & Sweet.
-    <span>Perfect for Little Ones.</span>
+      Soft & Sweet.
+      <span>Perfect for Little Ones.</span>
     `,
 
     `
-    Dress Them Cute.
-    <span>Let Them Shine.</span>
+      Dress Them Cute.
+      <span>Let Them Shine.</span>
     `
 
   ];
 
+
   return (
     titles[index] ||
     `
-    Little Looks.
-    <span>Big Style.</span>
+      Little Looks.
+      <span>Big Style.</span>
     `
   );
 
@@ -360,12 +422,17 @@ function getHeroTitle(product, index) {
 function updateHero() {
 
   const track =
-    document.getElementById("heroTrack");
+    $("heroTrack");
 
   const dots =
-    document.querySelectorAll(".hero-dot");
+    document.querySelectorAll(
+      ".hero-dot"
+    );
 
-  if (!track) return;
+
+  if (!track)
+    return;
+
 
   track.style.transform =
     `translateX(-${heroIndex * 100}%)`;
@@ -391,16 +458,14 @@ function updateHero() {
 
 function nextHero() {
 
-  heroIndex++;
+  if (!featuredProducts.length)
+    return;
 
-  if (
-    heroIndex >=
-    featuredProducts.length
-  ) {
 
-    heroIndex = 0;
+  heroIndex =
+    (heroIndex + 1) %
+    featuredProducts.length;
 
-  }
 
   updateHero();
 
@@ -415,6 +480,10 @@ function nextHero() {
 
 function previousHero() {
 
+  if (!featuredProducts.length)
+    return;
+
+
   heroIndex--;
 
   if (heroIndex < 0) {
@@ -423,6 +492,7 @@ function previousHero() {
       featuredProducts.length - 1;
 
   }
+
 
   updateHero();
 
@@ -436,6 +506,13 @@ function previousHero() {
 ===================================================== */
 
 function goToHero(index) {
+
+  if (
+    index < 0 ||
+    index >= featuredProducts.length
+  )
+    return;
+
 
   heroIndex = index;
 
@@ -454,20 +531,18 @@ function startHeroTimer() {
 
   clearInterval(heroTimer);
 
+
+  if (featuredProducts.length <= 1)
+    return;
+
+
   heroTimer =
     setInterval(
       () => {
 
-        heroIndex++;
-
-        if (
-          heroIndex >=
-          featuredProducts.length
-        ) {
-
-          heroIndex = 0;
-
-        }
+        heroIndex =
+          (heroIndex + 1) %
+          featuredProducts.length;
 
         updateHero();
 
@@ -486,17 +561,17 @@ function restartHeroTimer() {
 
 
 /* =====================================================
-   HERO BUTTONS
+   HERO CONTROLS
 ===================================================== */
 
 const heroNext =
-  document.getElementById("heroNext");
+  $("heroNext");
 
 const heroPrev =
-  document.getElementById("heroPrev");
+  $("heroPrev");
 
 const heroSlider =
-  document.getElementById("heroSlider");
+  $("heroSlider");
 
 
 if (heroNext) {
@@ -523,7 +598,8 @@ if (heroSlider) {
 
   heroSlider.addEventListener(
     "mouseenter",
-    () => clearInterval(heroTimer)
+    () =>
+      clearInterval(heroTimer)
   );
 
 
@@ -542,16 +618,21 @@ if (heroSlider) {
 function renderProducts() {
 
   const container =
-    document.getElementById("products");
+    $("products");
 
   const searchInput =
-    document.getElementById("searchInput");
+    $("searchInput");
 
-  if (!container) return;
+
+  if (!container)
+    return;
+
 
   const search =
     searchInput
-      ? searchInput.value.toLowerCase().trim()
+      ? searchInput.value
+          .toLowerCase()
+          .trim()
       : "";
 
 
@@ -561,7 +642,8 @@ function renderProducts() {
 
         const categoryMatch =
           currentCategory === "all" ||
-          product.category === currentCategory;
+          product.category ===
+            currentCategory;
 
 
         const searchMatch =
@@ -579,7 +661,7 @@ function renderProducts() {
     );
 
 
-  if (filtered.length === 0) {
+  if (!filtered.length) {
 
     container.innerHTML = `
 
@@ -609,91 +691,142 @@ function renderProducts() {
   container.innerHTML =
     filtered
       .map(
-        product => `
+        product => {
 
-        <div class="product-card">
+          const isFavorite =
+            favorites.includes(
+              product.id
+            );
 
-          <div class="product-image">
 
-            <div class="discount">
-              -${product.discount}%
+          return `
+
+            <div
+              class="product-card"
+              data-product-id="${product.id}">
+
+              <div class="product-image">
+
+                <div class="discount">
+                  -${product.discount}%
+                </div>
+
+
+                <button
+                  class="
+                    favorite
+                    ${isFavorite ? "active" : ""}
+                  "
+                  onclick="favoriteProduct(this, ${product.id})"
+                  aria-label="${
+                    isFavorite
+                      ? "Remove from favorites"
+                      : "Add to favorites"
+                  }"
+                  type="button">
+
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="${
+                      isFavorite
+                        ? "currentColor"
+                        : "none"
+                    }"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round">
+
+                    <path
+                      d="
+                        M20.84 4.61
+                        a5.5 5.5 0 0 0-7.78 0
+                        L12 5.67
+                        l-1.06-1.06
+                        a5.5 5.5 0 0 0-7.78 7.78
+                        l1.06 1.06
+                        L12 21.23
+                        l7.78-7.78
+                        1.06-1.06
+                        a5.5 5.5 0 0 0 0-7.78z
+                      ">
+                    </path>
+
+                  </svg>
+
+                </button>
+
+
+                <img
+                  src="${escapeHtml(product.image)}"
+                  alt="${escapeHtml(product.name)}"
+                  loading="lazy"
+                  onerror="this.style.display='none'"
+                >
+
+              </div>
+
+
+              <div class="product-info">
+
+                <div class="product-category">
+                  ${escapeHtml(product.category)}
+                </div>
+
+
+                <h3>
+                  ${escapeHtml(product.name)}
+                </h3>
+
+
+                <div class="product-price-row">
+
+                  <strong>
+                    ₱${product.price.toLocaleString()}
+                  </strong>
+
+                  <del>
+                    ₱${product.oldPrice.toLocaleString()}
+                  </del>
+
+                </div>
+
+
+                <div class="product-rating">
+                  ⭐ ${product.rating}
+                </div>
+
+
+                <div class="product-actions">
+
+                  <button
+                    class="view-product"
+                    onclick="viewProduct(${product.id})"
+                    type="button">
+
+                    View Outfit
+
+                  </button>
+
+
+                  <button
+                    class="add-cart"
+                    onclick="addToCart(${product.id})"
+                    type="button">
+
+                    🛍️ Add
+
+                  </button>
+
+                </div>
+
+              </div>
+
             </div>
 
+          `;
 
-            <button
-              class="favorite"
-              onclick="favoriteProduct(this, ${product.id})"
-              aria-label="Add to favorites"
-              type="button">
-
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-
-                <path
-                  d="M20.84 4.61
-                     a5.5 5.5 0 0 0-7.78 0
-                     L12 5.67
-                     l-1.06-1.06
-                     a5.5 5.5 0 0 0-7.78 7.78
-                     l1.06 1.06
-                     L12 21.23
-                     l7.78-7.78
-                     1.06-1.06
-                     a5.5 5.5 0 0 0 0-7.78z">
-                </path>
-
-              </svg>
-
-            </button>
-
-
-            <img
-              src="${product.image}"
-              alt="${escapeHtml(product.name)}">
-
-          </div>
-
-
-          <div class="product-info">
-
-            <h3>
-              ${escapeHtml(product.name)}
-            </h3>
-
-
-            <div class="product-actions">
-
-              <button
-                class="view-product"
-                onclick="viewProduct(${product.id})"
-                type="button">
-
-                View Outfit
-
-              </button>
-
-
-              <button
-                class="add-cart"
-                onclick="addToCart(${product.id})"
-                type="button">
-
-                🛍️ Add
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        `
+        }
       )
       .join("");
 
@@ -713,7 +846,8 @@ function viewProduct(id) {
     );
 
 
-  if (!selectedProduct) return;
+  if (!selectedProduct)
+    return;
 
 
   selectedQuantity = 1;
@@ -721,9 +855,12 @@ function viewProduct(id) {
   renderProductDetails();
 
 
-  document
-    .getElementById("productModal")
-    .classList.add("show");
+  const modal =
+    $("productModal");
+
+
+  if (modal)
+    modal.classList.add("show");
 
 }
 
@@ -738,17 +875,28 @@ function renderProductDetails() {
     selectedProduct;
 
 
-  document
-    .getElementById("productDetails")
-    .innerHTML = `
+  if (!product)
+    return;
+
+
+  const container =
+    $("productDetails");
+
+
+  if (!container)
+    return;
+
+
+  container.innerHTML = `
 
     <div class="product-detail">
 
       <div class="product-detail-image">
 
         <img
-          src="${product.image}"
-          alt="${escapeHtml(product.name)}">
+          src="${escapeHtml(product.image)}"
+          alt="${escapeHtml(product.name)}"
+        >
 
       </div>
 
@@ -801,7 +949,8 @@ function renderProductDetails() {
 
           <button
             onclick="changeProductQuantity(-1)"
-            type="button">
+            type="button"
+            aria-label="Decrease quantity">
 
             −
 
@@ -815,7 +964,8 @@ function renderProductDetails() {
 
           <button
             onclick="changeProductQuantity(1)"
-            type="button">
+            type="button"
+            aria-label="Increase quantity">
 
             +
 
@@ -846,22 +996,23 @@ function renderProductDetails() {
    PRODUCT QUANTITY
 ===================================================== */
 
-function changeProductQuantity(amount) {
+function changeProductQuantity(
+  amount
+) {
 
   selectedQuantity += amount;
 
 
-  if (selectedQuantity < 1) {
-
+  if (selectedQuantity < 1)
     selectedQuantity = 1;
 
-  }
+
+  if (selectedQuantity > 99)
+    selectedQuantity = 99;
 
 
   const quantityElement =
-    document.getElementById(
-      "productQuantity"
-    );
+    $("productQuantity");
 
 
   if (quantityElement) {
@@ -880,7 +1031,8 @@ function changeProductQuantity(amount) {
 
 function addSelectedProductToCart() {
 
-  if (!selectedProduct) return;
+  if (!selectedProduct)
+    return;
 
 
   const existing =
@@ -911,6 +1063,8 @@ function addSelectedProductToCart() {
   }
 
 
+  normalizeCart();
+
   saveCart();
 
 
@@ -922,27 +1076,70 @@ function addSelectedProductToCart() {
 
 
   showToast(
-    productName +
-    " added to your bag 🛍️"
+    `${productName} added to your bag 🛍️`
   );
 
 }
 
 
 /* =====================================================
-   CLOSE PRODUCT
+   NORMALIZE CART
 ===================================================== */
 
-function closeProduct() {
+function normalizeCart() {
 
-  const modal =
-    document.getElementById("productModal");
+  cart =
+    cart
+      .filter(item => {
 
-  if (modal) {
+        const product =
+          products.find(
+            p => p.id === item.id
+          );
 
-    modal.classList.remove("show");
+        return (
+          product &&
+          Number(item.quantity) > 0
+        );
 
-  }
+      })
+      .map(item => ({
+
+        id:
+          item.id,
+
+        quantity:
+          Math.min(
+            99,
+            Math.max(
+              1,
+              Number(item.quantity)
+            )
+          )
+
+      }));
+
+}
+
+
+/* =====================================================
+   SAVE CART
+===================================================== */
+
+function saveCart() {
+
+  normalizeCart();
+
+
+  localStorage.setItem(
+    "zolas-cart",
+    JSON.stringify(cart)
+  );
+
+
+  renderCart();
+
+  updateCartCount();
 
 }
 
@@ -959,7 +1156,15 @@ function addToCart(id) {
     );
 
 
-  if (!product) return;
+  if (!product) {
+
+    showToast(
+      "Product not found."
+    );
+
+    return;
+
+  }
 
 
   const existing =
@@ -971,14 +1176,27 @@ function addToCart(id) {
 
   if (existing) {
 
+    if (existing.quantity >= 99) {
+
+      showToast(
+        "Maximum quantity reached."
+      );
+
+      return;
+
+    }
+
     existing.quantity++;
 
   } else {
 
     cart.push({
 
-      id: id,
-      quantity: 1
+      id:
+        id,
+
+      quantity:
+        1
 
     });
 
@@ -989,28 +1207,8 @@ function addToCart(id) {
 
 
   showToast(
-    product.name +
-    " added to your bag 🛍️"
+    `${product.name} added to your bag 🛍️`
   );
-
-}
-
-
-/* =====================================================
-   SAVE CART
-===================================================== */
-
-function saveCart() {
-
-  localStorage.setItem(
-    "zolas-cart",
-    JSON.stringify(cart)
-  );
-
-
-  renderCart();
-
-  updateCartCount();
 
 }
 
@@ -1024,19 +1222,21 @@ function updateCartCount() {
   const count =
     cart.reduce(
       (sum, item) =>
-        sum + item.quantity,
+        sum + Number(item.quantity || 0),
       0
     );
 
 
   const cartCount =
-    document.getElementById("cartCount");
+    $("cartCount");
 
 
   if (cartCount) {
 
     cartCount.textContent =
-      count;
+      count > 99
+        ? "99+"
+        : count;
 
   }
 
@@ -1050,12 +1250,16 @@ function updateCartCount() {
 function renderCart() {
 
   const container =
-    document.getElementById("cartItems");
+    $("cartItems");
 
-  if (!container) return;
+  if (!container)
+    return;
 
 
-  if (cart.length === 0) {
+  normalizeCart();
+
+
+  if (!cart.length) {
 
     container.innerHTML = `
 
@@ -1078,10 +1282,13 @@ function renderCart() {
     `;
 
 
-    document
-      .getElementById("cartTotal")
-      .textContent =
-      "₱0";
+    const totalElement =
+      $("cartTotal");
+
+
+    if (totalElement)
+      totalElement.textContent =
+        "₱0";
 
 
     return;
@@ -1093,105 +1300,116 @@ function renderCart() {
 
 
   container.innerHTML =
-    cart.map(
-      item => {
+    cart
+      .map(
+        item => {
 
-        const product =
-          products.find(
-            p =>
-              p.id ===
-              item.id
-          );
-
-
-        if (!product) return "";
+          const product =
+            products.find(
+              p =>
+                p.id === item.id
+            );
 
 
-        const subtotal =
-          product.price *
-          item.quantity;
+          if (!product)
+            return "";
 
 
-        total += subtotal;
+          const subtotal =
+            product.price *
+            item.quantity;
 
 
-        return `
-
-          <div class="cart-item">
-
-            <div class="cart-item-image">
-
-              <img
-                src="${product.image}"
-                alt="${escapeHtml(product.name)}">
-
-            </div>
+          total += subtotal;
 
 
-            <div>
+          return `
 
-              <h4>
-                ${escapeHtml(product.name)}
-              </h4>
+            <div class="cart-item">
 
+              <div class="cart-item-image">
 
-              <div class="cart-item-price">
-                ₱${subtotal.toLocaleString()}
-              </div>
-
-
-              <div class="quantity">
-
-                <button
-                  onclick="changeQuantity(${product.id}, -1)"
-                  type="button">
-
-                  −
-
-                </button>
-
-
-                <span>
-                  ${item.quantity}
-                </span>
-
-
-                <button
-                  onclick="changeQuantity(${product.id}, 1)"
-                  type="button">
-
-                  +
-
-                </button>
-
-
-                <button
-                  class="remove"
-                  onclick="removeFromCart(${product.id})"
-                  type="button">
-
-                  Remove
-
-                </button>
+                <img
+                  src="${escapeHtml(product.image)}"
+                  alt="${escapeHtml(product.name)}"
+                  loading="lazy"
+                >
 
               </div>
 
+
+              <div class="cart-item-content">
+
+                <h4>
+                  ${escapeHtml(product.name)}
+                </h4>
+
+
+                <div class="cart-item-price">
+                  ₱${subtotal.toLocaleString()}
+                </div>
+
+
+                <div class="quantity">
+
+                  <button
+                    onclick="changeQuantity(${product.id}, -1)"
+                    type="button"
+                    aria-label="Decrease quantity">
+
+                    −
+
+                  </button>
+
+
+                  <span>
+                    ${item.quantity}
+                  </span>
+
+
+                  <button
+                    onclick="changeQuantity(${product.id}, 1)"
+                    type="button"
+                    aria-label="Increase quantity">
+
+                    +
+
+                  </button>
+
+
+                  <button
+                    class="remove"
+                    onclick="removeFromCart(${product.id})"
+                    type="button">
+
+                    Remove
+
+                  </button>
+
+                </div>
+
+              </div>
+
             </div>
 
-          </div>
+          `;
 
-        `;
-
-      }
-    )
-    .join("");
+        }
+      )
+      .join("");
 
 
-  document
-    .getElementById("cartTotal")
-    .textContent =
+  const cartTotal =
+    $("cartTotal");
+
+
+  if (cartTotal) {
+
+    cartTotal.textContent =
       "₱" +
       total.toLocaleString();
+
+  }
 
 }
 
@@ -1200,7 +1418,10 @@ function renderCart() {
    CART QUANTITY
 ===================================================== */
 
-function changeQuantity(id, amount) {
+function changeQuantity(
+  id,
+  amount
+) {
 
   const item =
     cart.find(
@@ -1208,7 +1429,8 @@ function changeQuantity(id, amount) {
     );
 
 
-  if (!item) return;
+  if (!item)
+    return;
 
 
   item.quantity += amount;
@@ -1224,16 +1446,33 @@ function changeQuantity(id, amount) {
   }
 
 
+  if (item.quantity > 99) {
+
+    item.quantity = 99;
+
+    showToast(
+      "Maximum quantity reached."
+    );
+
+  }
+
+
   saveCart();
 
 }
 
 
 /* =====================================================
-   REMOVE
+   REMOVE FROM CART
 ===================================================== */
 
 function removeFromCart(id) {
+
+  const product =
+    products.find(
+      p => p.id === id
+    );
+
 
   cart =
     cart.filter(
@@ -1246,7 +1485,9 @@ function removeFromCart(id) {
 
 
   showToast(
-    "Product removed from your bag"
+    product
+      ? `${product.name} removed from your bag`
+      : "Product removed from your bag"
   );
 
 }
@@ -1261,9 +1502,12 @@ function openCart() {
   renderCart();
 
 
-  document
-    .getElementById("cartOverlay")
-    .classList.add("show");
+  const overlay =
+    $("cartOverlay");
+
+
+  if (overlay)
+    overlay.classList.add("show");
 
 }
 
@@ -1274,9 +1518,12 @@ function openCart() {
 
 function closeCart() {
 
-  document
-    .getElementById("cartOverlay")
-    .classList.remove("show");
+  const overlay =
+    $("cartOverlay");
+
+
+  if (overlay)
+    overlay.classList.remove("show");
 
 }
 
@@ -1287,10 +1534,10 @@ function closeCart() {
 
 function startCheckout() {
 
-  if (cart.length === 0) {
+  if (!cart.length) {
 
     showToast(
-      "Your cart is empty"
+      "Your cart is empty."
     );
 
     return;
@@ -1298,15 +1545,12 @@ function startCheckout() {
   }
 
 
-  /* =================================================
-     USER MUST BE LOGGED IN
-  ================================================= */
-
   if (!currentUser) {
 
     closeCart();
 
     openLogin();
+
 
     showToast(
       "Please sign in before checkout."
@@ -1322,9 +1566,12 @@ function startCheckout() {
   renderCheckout();
 
 
-  document
-    .getElementById("checkoutOverlay")
-    .classList.add("show");
+  const overlay =
+    $("checkoutOverlay");
+
+
+  if (overlay)
+    overlay.classList.add("show");
 
 }
 
@@ -1335,9 +1582,12 @@ function startCheckout() {
 
 function closeCheckout() {
 
-  document
-    .getElementById("checkoutOverlay")
-    .classList.remove("show");
+  const overlay =
+    $("checkoutOverlay");
+
+
+  if (overlay)
+    overlay.classList.remove("show");
 
 }
 
@@ -1349,61 +1599,73 @@ function closeCheckout() {
 function renderCheckout() {
 
   const container =
-    document.getElementById("checkoutItems");
+    $("checkoutItems");
+
+
+  if (!container)
+    return;
 
 
   let subtotal = 0;
 
 
   container.innerHTML =
-    cart.map(
-      item => {
+    cart
+      .map(
+        item => {
 
-        const product =
-          products.find(
-            p =>
-              p.id === item.id
-          );
-
-
-        if (!product) return "";
+          const product =
+            products.find(
+              p =>
+                p.id === item.id
+            );
 
 
-        const total =
-          product.price *
-          item.quantity;
+          if (!product)
+            return "";
 
 
-        subtotal += total;
+          const total =
+            product.price *
+            item.quantity;
 
 
-        return `
-
-          <div class="summary-item">
-
-            <span>
-              ${escapeHtml(product.name)}
-              × ${item.quantity}
-            </span>
-
-            <strong>
-              ₱${total.toLocaleString()}
-            </strong>
-
-          </div>
-
-        `;
-
-      }
-    )
-    .join("");
+          subtotal += total;
 
 
-  document
-    .getElementById("checkoutSubtotal")
-    .textContent =
+          return `
+
+            <div class="summary-item">
+
+              <span>
+                ${escapeHtml(product.name)}
+                × ${item.quantity}
+              </span>
+
+              <strong>
+                ₱${total.toLocaleString()}
+              </strong>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join("");
+
+
+  const subtotalElement =
+    $("checkoutSubtotal");
+
+
+  if (subtotalElement) {
+
+    subtotalElement.textContent =
       "₱" +
       subtotal.toLocaleString();
+
+  }
 
 
   /* =================================================
@@ -1411,10 +1673,13 @@ function renderCheckout() {
   ================================================= */
 
   const customerEmail =
-    document.getElementById("customerEmail");
+    $("customerEmail");
 
 
-  if (customerEmail && currentUser) {
+  if (
+    customerEmail &&
+    currentUser
+  ) {
 
     customerEmail.value =
       currentUser.email || "";
@@ -1423,7 +1688,7 @@ function renderCheckout() {
 
 
   const customerName =
-    document.getElementById("customerName");
+    $("customerName");
 
 
   if (
@@ -1475,45 +1740,57 @@ function updateCheckoutTotal() {
 
 
   const shippingElement =
-    document.getElementById(
-      "shippingMethod"
-    );
+    $("shippingMethod");
 
 
   const shipping =
     shippingElement
-      ? Number(shippingElement.value)
+      ? Number(shippingElement.value || 0)
       : 0;
 
 
-  document
-    .getElementById("checkoutShipping")
-    .textContent =
+  const shippingOutput =
+    $("checkoutShipping");
 
+
+  if (shippingOutput) {
+
+    shippingOutput.textContent =
       shipping === 0
         ? "FREE"
         : "₱" +
           shipping.toLocaleString();
 
+  }
 
-  document
-    .getElementById("checkoutTotal")
-    .textContent =
+
+  const totalOutput =
+    $("checkoutTotal");
+
+
+  if (totalOutput) {
+
+    totalOutput.textContent =
       "₱" +
       (
         subtotal +
         shipping
       ).toLocaleString();
 
+  }
+
 }
 
 
 /* =====================================================
    PLACE ORDER
-   SAVE TO FIREBASE REALTIME DATABASE
 ===================================================== */
 
 async function placeOrder() {
+
+  if (isPlacingOrder)
+    return;
+
 
   if (!currentUser) {
 
@@ -1530,46 +1807,67 @@ async function placeOrder() {
   }
 
 
-  const name =
-    document
-      .getElementById("customerName")
-      .value
-      .trim();
+  if (!cart.length) {
 
+    showToast(
+      "Your cart is empty."
+    );
+
+    closeCheckout();
+
+    return;
+
+  }
+
+
+  const nameElement =
+    $("customerName");
+
+  const emailElement =
+    $("customerEmail");
+
+  const phoneElement =
+    $("customerPhone");
+
+  const addressElement =
+    $("customerAddress");
+
+  const cityElement =
+    $("customerCity");
+
+  const provinceElement =
+    $("customerProvince");
+
+
+  const name =
+    nameElement
+      ? nameElement.value.trim()
+      : "";
 
   const email =
-    document
-      .getElementById("customerEmail")
-      .value
-      .trim();
-
+    emailElement
+      ? emailElement.value.trim()
+      : "";
 
   const phone =
-    document
-      .getElementById("customerPhone")
-      .value
-      .trim();
-
+    phoneElement
+      ? phoneElement.value.trim()
+      : "";
 
   const address =
-    document
-      .getElementById("customerAddress")
-      .value
-      .trim();
-
+    addressElement
+      ? addressElement.value.trim()
+      : "";
 
   const city =
-    document
-      .getElementById("customerCity")
-      .value
-      .trim();
-
+    cityElement
+      ? cityElement.value.trim()
+      : "";
 
   const province =
-    document
-      .getElementById("customerProvince")
-      .value
-      .trim();
+    provinceElement
+      ? provinceElement.value.trim()
+      : "";
 
 
   if (
@@ -1582,7 +1880,7 @@ async function placeOrder() {
   ) {
 
     showToast(
-      "Please complete your information"
+      "Please complete your information."
     );
 
     return;
@@ -1590,20 +1888,25 @@ async function placeOrder() {
   }
 
 
+  const paymentElement =
+    $("paymentMethod");
+
+
   const paymentMethod =
-    document
-      .getElementById("paymentMethod")
-      .value;
+    paymentElement
+      ? paymentElement.value
+      : "Not specified";
 
 
-  const shippingMethod =
-    document
-      .getElementById("shippingMethod");
+  const shippingElement =
+    $("shippingMethod");
 
 
   const shipping =
-    shippingMethod
-      ? Number(shippingMethod.value)
+    shippingElement
+      ? Number(
+          shippingElement.value || 0
+        )
       : 0;
 
 
@@ -1611,54 +1914,66 @@ async function placeOrder() {
 
 
   const orderItems =
-    cart.map(
-      item => {
+    cart
+      .map(
+        item => {
 
-        const product =
-          products.find(
-            p =>
-              p.id === item.id
-          );
-
-
-        if (!product) return null;
+          const product =
+            products.find(
+              p =>
+                p.id === item.id
+            );
 
 
-        const itemTotal =
-          product.price *
-          item.quantity;
+          if (!product)
+            return null;
 
 
-        subtotal += itemTotal;
+          const itemTotal =
+            product.price *
+            item.quantity;
 
 
-        return {
+          subtotal += itemTotal;
 
-          productId:
-            product.id,
 
-          productName:
-            product.name,
+          return {
 
-          price:
-            product.price,
+            productId:
+              product.id,
 
-          quantity:
-            item.quantity,
+            productName:
+              product.name,
 
-          total:
-            itemTotal
+            price:
+              product.price,
 
-        };
+            quantity:
+              item.quantity,
 
-      }
-    )
-    .filter(Boolean);
+            total:
+              itemTotal
+
+          };
+
+        }
+      )
+      .filter(Boolean);
+
+
+  if (!orderItems.length) {
+
+    showToast(
+      "Unable to process your cart."
+    );
+
+    return;
+
+  }
 
 
   const total =
-    subtotal +
-    shipping;
+    subtotal + shipping;
 
 
   const orderNumber =
@@ -1668,71 +1983,66 @@ async function placeOrder() {
       .slice(-8);
 
 
+  const createdAt =
+    new Date().toISOString();
+
+
   const orderData = {
 
-    orderNumber:
-
-      orderNumber,
+    orderNumber,
 
     userId:
-
       currentUser.uid,
 
     customer: {
 
-      name:
-        name,
+      name,
 
-      email:
-        email,
+      email,
 
-      phone:
-        phone
+      phone
 
     },
 
     shippingAddress: {
 
-      address:
-        address,
+      address,
 
-      city:
-        city,
+      city,
 
-      province:
-        province
+      province
 
     },
 
     items:
       orderItems,
 
-    subtotal:
-      subtotal,
+    subtotal,
 
-    shipping:
-      shipping,
+    shipping,
 
-    total:
-      total,
+    total,
 
-    paymentMethod:
-      paymentMethod,
+    paymentMethod,
 
     status:
       "pending",
 
-    createdAt:
-      new Date().toISOString()
+    createdAt
 
   };
 
 
   try {
 
-    /*
-      Save order using UID + order number
-    */
+    isPlacingOrder = true;
+
+    setCheckoutButtonLoading(true);
+
+
+    /* =================================================
+       SAVE COMPLETE ORDER
+    ================================================= */
 
     const orderRef =
       ref(
@@ -1747,10 +2057,9 @@ async function placeOrder() {
     );
 
 
-    /*
-      Also save latest order reference
-      under the user's account
-    */
+    /* =================================================
+       SAVE ORDER SUMMARY
+    ================================================= */
 
     const userOrderRef =
       ref(
@@ -1763,17 +2072,16 @@ async function placeOrder() {
       userOrderRef,
       {
 
-        orderNumber:
-          orderNumber,
+        orderNumber,
 
-        total:
-          total,
+        total,
 
         status:
           "pending",
 
-        createdAt:
-          orderData.createdAt
+        paymentMethod,
+
+        createdAt
 
       }
     );
@@ -1795,10 +2103,65 @@ async function placeOrder() {
 
 
     showToast(
-      "Unable to place order. Please try again."
+      getFirebaseErrorMessage(error)
     );
 
+
+    isPlacingOrder = false;
+
+    setCheckoutButtonLoading(false);
+
   }
+
+}
+
+
+/* =====================================================
+   CHECKOUT BUTTON LOADING
+===================================================== */
+
+function setCheckoutButtonLoading(
+  loading
+) {
+
+  const buttons =
+    document.querySelectorAll(
+      "#checkoutOverlay .place-order, #checkoutOverlay button[type='submit']"
+    );
+
+
+  buttons.forEach(
+    button => {
+
+      if (loading) {
+
+        button.disabled = true;
+
+        if (!button.dataset.originalText) {
+
+          button.dataset.originalText =
+            button.textContent;
+
+        }
+
+        button.textContent =
+          "Processing...";
+
+      } else {
+
+        button.disabled = false;
+
+        if (button.dataset.originalText) {
+
+          button.textContent =
+            button.dataset.originalText;
+
+        }
+
+      }
+
+    }
+  );
 
 }
 
@@ -1813,59 +2176,68 @@ function showOrderSuccess(
   paymentMethod
 ) {
 
-  document
-    .getElementById("checkoutContent")
-    .innerHTML = `
-
-      <div class="success-box">
-
-        <div class="success-icon">
-          🎀
-        </div>
+  const checkoutContent =
+    $("checkoutContent");
 
 
-        <h2>
-          Order Confirmed!
-        </h2>
+  if (!checkoutContent)
+    return;
 
 
-        <p>
-          Thank you,
-          <strong>
-            ${escapeHtml(name)}
-          </strong>!
-        </p>
+  checkoutContent.innerHTML = `
 
+    <div class="success-box">
 
-        <p>
-          Your order number is:
-          <br>
-
-          <strong>
-            #${escapeHtml(orderNumber)}
-          </strong>
-
-        </p>
-
-
-        <p>
-          Payment:
-          ${escapeHtml(paymentMethod)}
-        </p>
-
-
-        <button
-          class="place-order"
-          onclick="finishOrder()"
-          type="button">
-
-          Continue Shopping
-
-        </button>
-
+      <div class="success-icon">
+        🎀
       </div>
 
-    `;
+
+      <h2>
+        Order Confirmed!
+      </h2>
+
+
+      <p>
+        Thank you,
+        <strong>
+          ${escapeHtml(name)}
+        </strong>!
+      </p>
+
+
+      <p>
+        Your order number is:
+        <br>
+
+        <strong>
+          #${escapeHtml(orderNumber)}
+        </strong>
+
+      </p>
+
+
+      <p>
+        Payment:
+        ${escapeHtml(paymentMethod)}
+      </p>
+
+
+      <button
+        class="place-order"
+        onclick="finishOrder()"
+        type="button">
+
+        Continue Shopping
+
+      </button>
+
+    </div>
+
+  `;
+
+
+  isPlacingOrder = false;
 
 }
 
@@ -1888,15 +2260,50 @@ function finishOrder() {
 
 
 /* =====================================================
-   FAVORITE
+   FAVORITES
 ===================================================== */
 
-function favoriteProduct(button, productId) {
+function favoriteProduct(
+  button,
+  productId
+) {
 
-  button.classList.toggle("active");
+  const index =
+    favorites.indexOf(
+      productId
+    );
 
 
-  if (button.classList.contains("active")) {
+  if (index === -1) {
+
+    favorites.push(
+      productId
+    );
+
+    button.classList.add(
+      "active"
+    );
+
+
+    button.setAttribute(
+      "aria-label",
+      "Remove from favorites"
+    );
+
+
+    const svg =
+      button.querySelector("svg");
+
+
+    if (svg) {
+
+      svg.setAttribute(
+        "fill",
+        "currentColor"
+      );
+
+    }
+
 
     showToast(
       "Added to favorites ♡"
@@ -1904,11 +2311,44 @@ function favoriteProduct(button, productId) {
 
   } else {
 
+    favorites.splice(
+      index,
+      1
+    );
+
+    button.classList.remove(
+      "active"
+    );
+
+
+    button.setAttribute(
+      "aria-label",
+      "Add to favorites"
+    );
+
+
+    const svg =
+      button.querySelector("svg");
+
+
+    if (svg) {
+
+      svg.setAttribute(
+        "fill",
+        "none"
+      );
+
+    }
+
+
     showToast(
       "Removed from favorites"
     );
 
   }
+
+
+  saveFavorites();
 
 }
 
@@ -1917,30 +2357,50 @@ function favoriteProduct(button, productId) {
    TOAST
 ===================================================== */
 
+let toastTimer = null;
+
+
 function showToast(message) {
 
   const toast =
-    document.getElementById("toast");
+    $("toast");
 
 
-  if (!toast) return;
+  if (!toast)
+    return;
 
 
   toast.textContent =
     message;
 
 
-  toast.classList.add("show");
-
-
-  setTimeout(
-    () => {
-
-      toast.classList.remove("show");
-
-    },
-    2000
+  toast.classList.remove(
+    "show"
   );
+
+
+  void toast.offsetWidth;
+
+
+  toast.classList.add(
+    "show"
+  );
+
+
+  clearTimeout(toastTimer);
+
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.classList.remove(
+          "show"
+        );
+
+      },
+      2500
+    );
 
 }
 
@@ -1951,7 +2411,7 @@ function showToast(message) {
 
 function escapeHtml(value) {
 
-  return String(value)
+  return String(value ?? "")
 
     .replace(
       /&/g,
@@ -1986,9 +2446,7 @@ function escapeHtml(value) {
 ===================================================== */
 
 const searchInput =
-  document.getElementById(
-    "searchInput"
-  );
+  $("searchInput");
 
 
 if (searchInput) {
@@ -2030,7 +2488,8 @@ document
 
 
           currentCategory =
-            this.dataset.category;
+            this.dataset.category ||
+            "all";
 
 
           renderProducts();
@@ -2047,16 +2506,16 @@ document
 ===================================================== */
 
 const themeBtn =
-  document.getElementById(
-    "themeBtn"
+  $("themeBtn");
+
+
+const savedTheme =
+  localStorage.getItem(
+    "zolas-theme"
   );
 
 
-if (
-  localStorage.getItem(
-    "zolas-theme"
-  ) === "dark"
-) {
+if (savedTheme === "dark") {
 
   document.body.classList.add(
     "dark"
@@ -2066,6 +2525,14 @@ if (
 
 
 if (themeBtn) {
+
+  themeBtn.classList.toggle(
+    "active",
+    document.body.classList.contains(
+      "dark"
+    )
+  );
+
 
   themeBtn.addEventListener(
     "click",
@@ -2090,11 +2557,6 @@ if (themeBtn) {
       );
 
 
-      /*
-        Keep SVG icon.
-        CSS can handle the visual state.
-      */
-
       themeBtn.classList.toggle(
         "active",
         dark
@@ -2111,9 +2573,7 @@ if (themeBtn) {
 ===================================================== */
 
 const cartBtn =
-  document.getElementById(
-    "cartBtn"
-  );
+  $("cartBtn");
 
 
 if (cartBtn) {
@@ -2131,9 +2591,7 @@ if (cartBtn) {
 ===================================================== */
 
 const cartOverlay =
-  document.getElementById(
-    "cartOverlay"
-  );
+  $("cartOverlay");
 
 
 if (cartOverlay) {
@@ -2161,9 +2619,7 @@ if (cartOverlay) {
 ===================================================== */
 
 const productModal =
-  document.getElementById(
-    "productModal"
-  );
+  $("productModal");
 
 
 if (productModal) {
@@ -2191,9 +2647,7 @@ if (productModal) {
 ===================================================== */
 
 const checkoutOverlay =
-  document.getElementById(
-    "checkoutOverlay"
-  );
+  $("checkoutOverlay");
 
 
 if (checkoutOverlay) {
@@ -2221,9 +2675,7 @@ if (checkoutOverlay) {
 ===================================================== */
 
 const shippingMethod =
-  document.getElementById(
-    "shippingMethod"
-  );
+  $("shippingMethod");
 
 
 if (shippingMethod) {
@@ -2262,7 +2714,6 @@ document.addEventListener(
 
 /* =====================================================
    AUTH
-   FIREBASE AUTHENTICATION
 ===================================================== */
 
 
@@ -2272,21 +2723,28 @@ document.addEventListener(
 
 function openLogin() {
 
-  loginView.classList.remove(
-    "hidden"
-  );
+  if (loginView)
+    loginView.classList.remove(
+      "hidden"
+    );
 
-  registerView.classList.add(
-    "hidden"
-  );
 
-  accountView.classList.add(
-    "hidden"
-  );
+  if (registerView)
+    registerView.classList.add(
+      "hidden"
+    );
 
-  authOverlay.classList.add(
-    "show"
-  );
+
+  if (accountView)
+    accountView.classList.add(
+      "hidden"
+    );
+
+
+  if (authOverlay)
+    authOverlay.classList.add(
+      "show"
+    );
 
 }
 
@@ -2297,27 +2755,34 @@ function openLogin() {
 
 function openRegister() {
 
-  loginView.classList.add(
-    "hidden"
-  );
+  if (loginView)
+    loginView.classList.add(
+      "hidden"
+    );
 
-  registerView.classList.remove(
-    "hidden"
-  );
 
-  accountView.classList.add(
-    "hidden"
-  );
+  if (registerView)
+    registerView.classList.remove(
+      "hidden"
+    );
 
-  authOverlay.classList.add(
-    "show"
-  );
+
+  if (accountView)
+    accountView.classList.add(
+      "hidden"
+    );
+
+
+  if (authOverlay)
+    authOverlay.classList.add(
+      "show"
+    );
 
 }
 
 
 /* =====================================================
-   ACCOUNT VIEW
+   OPEN ACCOUNT
 ===================================================== */
 
 function openAccount() {
@@ -2331,29 +2796,30 @@ function openAccount() {
   }
 
 
-  loginView.classList.add(
-    "hidden"
-  );
+  if (loginView)
+    loginView.classList.add(
+      "hidden"
+    );
 
-  registerView.classList.add(
-    "hidden"
-  );
 
-  accountView.classList.remove(
-    "hidden"
-  );
+  if (registerView)
+    registerView.classList.add(
+      "hidden"
+    );
+
+
+  if (accountView)
+    accountView.classList.remove(
+      "hidden"
+    );
 
 
   const accountName =
-    document.getElementById(
-      "accountName"
-    );
+    $("accountName");
 
 
   const accountEmail =
-    document.getElementById(
-      "accountEmail"
-    );
+    $("accountEmail");
 
 
   const displayName =
@@ -2379,9 +2845,10 @@ function openAccount() {
   }
 
 
-  authOverlay.classList.add(
-    "show"
-  );
+  if (authOverlay)
+    authOverlay.classList.add(
+      "show"
+    );
 
 }
 
@@ -2392,23 +2859,23 @@ function openAccount() {
 
 function closeAuth() {
 
-  if (!authOverlay) return;
+  if (authOverlay) {
 
-  authOverlay.classList.remove(
-    "show"
-  );
+    authOverlay.classList.remove(
+      "show"
+    );
+
+  }
 
 }
 
 
 /* =====================================================
-   FIREBASE REGISTER
+   REGISTER
 ===================================================== */
 
 const registerForm =
-  document.getElementById(
-    "registerForm"
-  );
+  $("registerForm");
 
 
 if (registerForm) {
@@ -2420,30 +2887,47 @@ if (registerForm) {
       event.preventDefault();
 
 
-      const name =
-        document
-          .getElementById("registerName")
-          .value
-          .trim();
+      const nameElement =
+        $("registerName");
 
+      const emailElement =
+        $("registerEmail");
+
+      const passwordElement =
+        $("registerPassword");
+
+
+      const name =
+        nameElement
+          ? nameElement.value.trim()
+          : "";
 
       const email =
-        document
-          .getElementById("registerEmail")
-          .value
-          .trim();
-
+        emailElement
+          ? emailElement.value.trim()
+          : "";
 
       const password =
-        document
-          .getElementById("registerPassword")
-          .value;
+        passwordElement
+          ? passwordElement.value
+          : "";
 
 
       if (!name) {
 
         showToast(
           "Please enter your name."
+        );
+
+        return;
+
+      }
+
+
+      if (!email) {
+
+        showToast(
+          "Please enter your email."
         );
 
         return;
@@ -2476,23 +2960,14 @@ if (registerForm) {
           userCredential.user;
 
 
-        /*
-          Save display name
-          inside Firebase Auth
-        */
-
         await updateProfile(
           user,
           {
-            displayName: name
+            displayName:
+              name
           }
         );
 
-
-        /*
-          Save customer profile
-          to Realtime Database
-        */
 
         await set(
           ref(
@@ -2510,6 +2985,9 @@ if (registerForm) {
             email:
               email,
 
+            provider:
+              "password",
+
             createdAt:
               new Date().toISOString()
 
@@ -2517,14 +2995,14 @@ if (registerForm) {
         );
 
 
-        showToast(
-          "Account created successfully! ✨"
-        );
-
-
         registerForm.reset();
 
         closeAuth();
+
+
+        showToast(
+          "Account created successfully! ✨"
+        );
 
 
       } catch (error) {
@@ -2548,13 +3026,11 @@ if (registerForm) {
 
 
 /* =====================================================
-   FIREBASE LOGIN
+   LOGIN
 ===================================================== */
 
 const loginForm =
-  document.getElementById(
-    "loginForm"
-  );
+  $("loginForm");
 
 
 if (loginForm) {
@@ -2566,17 +3042,33 @@ if (loginForm) {
       event.preventDefault();
 
 
-      const email =
-        document
-          .getElementById("loginEmail")
-          .value
-          .trim();
+      const emailElement =
+        $("loginEmail");
 
+      const passwordElement =
+        $("loginPassword");
+
+
+      const email =
+        emailElement
+          ? emailElement.value.trim()
+          : "";
 
       const password =
-        document
-          .getElementById("loginPassword")
-          .value;
+        passwordElement
+          ? passwordElement.value
+          : "";
+
+
+      if (!email || !password) {
+
+        showToast(
+          "Please enter your email and password."
+        );
+
+        return;
+
+      }
 
 
       try {
@@ -2636,10 +3128,6 @@ async function loginWithGoogle() {
     const user =
       result.user;
 
-
-    /*
-      Check if profile already exists
-    */
 
     const profileRef =
       ref(
@@ -2708,15 +3196,10 @@ async function loginWithGoogle() {
 
 /* =====================================================
    GOOGLE LOGIN BUTTON
-   OPTIONAL
-   If we add button later:
-   id="googleLoginBtn"
 ===================================================== */
 
 const googleLoginBtn =
-  document.getElementById(
-    "googleLoginBtn"
-  );
+  $("googleLoginBtn");
 
 
 if (googleLoginBtn) {
@@ -2730,13 +3213,11 @@ if (googleLoginBtn) {
 
 
 /* =====================================================
-   FIREBASE LOGOUT
+   LOGOUT
 ===================================================== */
 
 const logoutBtn =
-  document.getElementById(
-    "logoutBtn"
-  );
+  $("logoutBtn");
 
 
 if (logoutBtn) {
@@ -2785,64 +3266,65 @@ onAuthStateChanged(
   auth,
   async user => {
 
-    currentUser = user || null;
+    currentUser =
+      user || null;
 
 
     updateAuthUI();
 
 
-    if (user) {
-
-      /*
-        Make sure customer profile exists
-      */
-
-      try {
-
-        const profileRef =
-          ref(
-            database,
-            `users/${user.uid}/profile`
-          );
+    if (!user)
+      return;
 
 
-        const snapshot =
-          await get(profileRef);
+    try {
+
+      const profileRef =
+        ref(
+          database,
+          `users/${user.uid}/profile`
+        );
 
 
-        if (!snapshot.exists()) {
+      const snapshot =
+        await get(profileRef);
 
-          await set(
-            profileRef,
-            {
 
-              uid:
-                user.uid,
+      if (!snapshot.exists()) {
 
-              name:
-                user.displayName ||
-                "Customer",
+        await set(
+          profileRef,
+          {
 
-              email:
-                user.email ||
-                "",
+            uid:
+              user.uid,
 
-              createdAt:
-                new Date().toISOString()
+            name:
+              user.displayName ||
+              "Customer",
 
-            }
-          );
+            email:
+              user.email ||
+              "",
 
-        }
+            provider:
+              user.providerData?.[0]?.providerId ||
+              "unknown",
 
-      } catch (error) {
+            createdAt:
+              new Date().toISOString()
 
-        console.error(
-          "Profile sync error:",
-          error
+          }
         );
 
       }
+
+    } catch (error) {
+
+      console.error(
+        "Profile sync error:",
+        error
+      );
 
     }
 
@@ -2857,9 +3339,7 @@ onAuthStateChanged(
 function updateAuthUI() {
 
   const profileBtn =
-    document.getElementById(
-      "profileBtn"
-    );
+    $("profileBtn");
 
 
   if (!profileBtn)
@@ -2872,11 +3352,18 @@ function updateAuthUI() {
       "logged-in"
     );
 
+
     profileBtn.setAttribute(
       "title",
-      currentUser.displayName
-        ? currentUser.displayName
-        : currentUser.email
+      currentUser.displayName ||
+      currentUser.email ||
+      "My Account"
+    );
+
+
+    profileBtn.setAttribute(
+      "aria-label",
+      "Open my account"
     );
 
   } else {
@@ -2885,8 +3372,15 @@ function updateAuthUI() {
       "logged-in"
     );
 
+
     profileBtn.removeAttribute(
       "title"
+    );
+
+
+    profileBtn.setAttribute(
+      "aria-label",
+      "Sign in"
     );
 
   }
@@ -2895,13 +3389,11 @@ function updateAuthUI() {
 
 
 /* =====================================================
-   AUTH BUTTON EVENTS
+   PROFILE BUTTON
 ===================================================== */
 
 const profileBtn =
-  document.getElementById(
-    "profileBtn"
-  );
+  $("profileBtn");
 
 
 if (profileBtn) {
@@ -2914,10 +3406,12 @@ if (profileBtn) {
 }
 
 
+/* =====================================================
+   AUTH CLOSE
+===================================================== */
+
 const authClose =
-  document.getElementById(
-    "authClose"
-  );
+  $("authClose");
 
 
 if (authClose) {
@@ -2930,33 +3424,49 @@ if (authClose) {
 }
 
 
+/* =====================================================
+   SHOW REGISTER
+===================================================== */
+
 const showRegister =
-  document.getElementById(
-    "showRegister"
-  );
+  $("showRegister");
 
 
 if (showRegister) {
 
   showRegister.addEventListener(
     "click",
-    openRegister
+    event => {
+
+      event.preventDefault();
+
+      openRegister();
+
+    }
   );
 
 }
 
 
+/* =====================================================
+   SHOW LOGIN
+===================================================== */
+
 const showLogin =
-  document.getElementById(
-    "showLogin"
-  );
+  $("showLogin");
 
 
 if (showLogin) {
 
   showLogin.addEventListener(
     "click",
-    openLogin
+    event => {
+
+      event.preventDefault();
+
+      openLogin();
+
+    }
   );
 
 }
@@ -2987,101 +3497,109 @@ if (authOverlay) {
 
 
 /* =====================================================
-   FIREBASE AUTH ERROR HANDLER
+   FIREBASE ERROR HANDLER
 ===================================================== */
 
 function handleFirebaseAuthError(
   error
 ) {
 
-  let message =
-    "Something went wrong. Please try again.";
+  showToast(
+    getFirebaseErrorMessage(error)
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE ERROR MESSAGE
+===================================================== */
+
+function getFirebaseErrorMessage(
+  error
+) {
+
+  if (!error)
+    return "Something went wrong.";
 
 
   switch (error.code) {
 
     case "auth/email-already-in-use":
 
-      message =
-        "This email is already registered.";
-
-      break;
+      return "This email is already registered.";
 
 
     case "auth/invalid-email":
 
-      message =
-        "Please enter a valid email address.";
-
-      break;
+      return "Please enter a valid email address.";
 
 
     case "auth/weak-password":
 
-      message =
-        "Password is too weak. Use at least 6 characters.";
-
-      break;
+      return "Password is too weak. Use at least 6 characters.";
 
 
     case "auth/user-not-found":
 
-      message =
-        "No account found with this email.";
-
-      break;
+      return "No account found with this email.";
 
 
     case "auth/wrong-password":
 
-      message =
-        "Incorrect password.";
-
-      break;
+      return "Incorrect password.";
 
 
     case "auth/invalid-credential":
 
-      message =
-        "Incorrect email or password.";
-
-      break;
+      return "Incorrect email or password.";
 
 
     case "auth/popup-closed-by-user":
 
-      message =
-        "Google sign-in was cancelled.";
-
-      break;
+      return "Google sign-in was cancelled.";
 
 
     case "auth/popup-blocked":
 
-      message =
-        "Your browser blocked the Google sign-in popup.";
-
-      break;
+      return "Your browser blocked the Google sign-in popup.";
 
 
     case "auth/network-request-failed":
 
-      message =
-        "Network error. Please check your internet connection.";
+      return "Network error. Please check your internet connection.";
 
-      break;
+
+    case "auth/too-many-requests":
+
+      return "Too many attempts. Please try again later.";
+
+
+    case "auth/user-disabled":
+
+      return "This account has been disabled.";
+
+
+    case "auth/operation-not-allowed":
+
+      return "This sign-in method is currently unavailable.";
+
+
+    default:
+
+      return (
+        error.message ||
+        "Something went wrong. Please try again."
+      );
 
   }
-
-
-  showToast(message);
 
 }
 
 
 /* =====================================================
    GLOBAL FUNCTIONS
-   Needed because HTML uses onclick=""
+   HTML onclick="" NEEDS THESE
 ===================================================== */
 
 window.viewProduct =
@@ -3143,6 +3661,8 @@ window.loginWithGoogle =
    INITIALIZE
 ===================================================== */
 
+normalizeCart();
+
 renderHero();
 
 renderProducts();
@@ -3154,3 +3674,27 @@ updateCartCount();
 updateAuthUI();
 
 startHeroTimer();
+
+
+/* =====================================================
+   READY
+===================================================== */
+
+console.log(
+  "🎀 Zola's Closet initialized successfully."
+);
+
+console.log(
+  "🛍️ Products:",
+  products.length
+);
+
+console.log(
+  "🛒 Cart items:",
+  cart.length
+);
+
+console.log(
+  "♡ Favorites:",
+  favorites.length
+);

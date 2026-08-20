@@ -12,6 +12,7 @@ import {
   ref,
   set,
   get,
+  onValue,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -25,9 +26,9 @@ import {
    PRODUCT DATABASE
 ===================================================== */
 
-const products = [];
+let products = [];
 
-const featuredProducts = [];
+let featuredProducts = [];
 
 
 /* =====================================================
@@ -48,6 +49,115 @@ let currentUser = null;
 
 let isPlacingOrder = false;
 
+/* =====================================================
+   FIREBASE PRODUCTS
+===================================================== */
+
+function loadProductsFromFirebase() {
+
+  const productsRef =
+    ref(database, "products");
+
+  onValue(
+    productsRef,
+    snapshot => {
+
+      const data = snapshot.val();
+
+      if (!data) {
+
+        products = [];
+        featuredProducts = [];
+
+        renderProducts();
+        renderHero();
+        renderCart();
+        updateCartCount();
+
+        return;
+
+      }
+
+      products =
+        Object.entries(data).map(
+          ([id, product]) => ({
+
+            id,
+
+            name:
+              product.name || "Unnamed Product",
+
+            category:
+              product.category || "all",
+
+            price:
+              Number(product.price || 0),
+
+            oldPrice:
+              Number(product.oldPrice || 0),
+
+            discount:
+              Number(product.discount || 0),
+
+            rating:
+              Number(product.rating || 0),
+
+            image:
+              product.image || "",
+
+            description:
+              product.description || "",
+
+            featured:
+              product.featured === true,
+
+            stock:
+              Number(product.stock || 0)
+
+          })
+        );
+
+
+      featuredProducts =
+        products.filter(
+          product =>
+            product.featured === true
+        );
+
+
+      console.log(
+        "🔥 Products loaded:",
+        products
+      );
+
+
+      renderProducts();
+
+      renderHero();
+
+      renderCart();
+
+      updateCartCount();
+
+      startHeroTimer();
+
+    },
+
+    error => {
+
+      console.error(
+        "Firebase products error:",
+        error
+      );
+
+      showToast(
+        "Unable to load products."
+      );
+
+    }
+  );
+
+}
 
 /* =====================================================
    LOCAL STORAGE
@@ -3858,6 +3968,8 @@ updateCartCount();
 updateAuthUI();
 
 startHeroTimer();
+
+loadProductsFromFirebase();
 
 
 /* =====================================================

@@ -1,17 +1,25 @@
 // =====================================================
-// ZOLA'S CLOSET - FIREBASE
+// FIREBASE CONFIGURATION
 // =====================================================
 
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
-  getAuth
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
-  getDatabase
+  getDatabase,
+  ref,
+  set,
+  get
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 
@@ -21,8 +29,7 @@ import {
 
 const firebaseConfig = {
 
-  apiKey:
-    "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
+  apiKey: "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
 
   authDomain:
     "zola-closet.firebaseapp.com",
@@ -68,8 +75,16 @@ const auth =
 // REALTIME DATABASE
 // =====================================================
 
-const db =
+const database =
   getDatabase(app);
+
+
+// =====================================================
+// GOOGLE PROVIDER
+// =====================================================
+
+const googleProvider =
+  new GoogleAuthProvider();
 
 
 // =====================================================
@@ -77,7 +92,19 @@ const db =
 // =====================================================
 
 export {
-  app,
   auth,
-  db
+  database,
+  googleProvider,
+
+  ref,
+  set,
+  get,
+
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  signInWithPopup,
+  updateProfile,
+
+  onAuthStateChanged
 };

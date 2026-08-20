@@ -1,18 +1,19 @@
-// =====================================================
-// FIREBASE CONFIGURATION
-// =====================================================
+/* =====================================================
+   ZOLA'S CLOSET
+   FIREBASE CONFIGURATION
+===================================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
   getAuth,
-  onAuthStateChanged,
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
   signInWithPopup,
-  updateProfile
+  signOut,
+  updateProfile,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
@@ -23,19 +24,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 
-// =====================================================
-// FIREBASE CONFIG
-// =====================================================
+/* =====================================================
+   FIREBASE CONFIG
+===================================================== */
 
 const firebaseConfig = {
 
-  apiKey: "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
+  apiKey:
+    "AIzaSyC1SI1SKgFwkCHpKo7pTelBpwMe4kF7QSQ",
 
   authDomain:
     "zola-closet.firebaseapp.com",
-
-  databaseURL:
-    "https://zola-closet-default-rtdb.asia-southeast1.firebasedatabase.app",
 
   projectId:
     "zola-closet",
@@ -55,56 +54,68 @@ const firebaseConfig = {
 };
 
 
-// =====================================================
-// INITIALIZE FIREBASE
-// =====================================================
+/* =====================================================
+   INITIALIZE FIREBASE
+===================================================== */
 
 const app =
   initializeApp(firebaseConfig);
 
 
-// =====================================================
-// AUTHENTICATION
-// =====================================================
+/* =====================================================
+   AUTH
+===================================================== */
 
 const auth =
   getAuth(app);
 
 
-// =====================================================
-// REALTIME DATABASE
-// =====================================================
-
-const database =
-  getDatabase(app);
-
-
-// =====================================================
-// GOOGLE PROVIDER
-// =====================================================
+/* =====================================================
+   GOOGLE AUTH
+===================================================== */
 
 const googleProvider =
   new GoogleAuthProvider();
 
 
-// =====================================================
-// EXPORT
-// =====================================================
+/* =====================================================
+   REALTIME DATABASE
+===================================================== */
+
+const database =
+  getDatabase(app);
+
+
+/* =====================================================
+   EXPORT
+===================================================== */
 
 export {
+
+  app,
+
   auth,
+
   database,
+
   googleProvider,
 
   ref,
+
   set,
+
   get,
 
   createUserWithEmailAndPassword,
+
   signInWithEmailAndPassword,
-  signOut,
+
   signInWithPopup,
+
+  signOut,
+
   updateProfile,
 
   onAuthStateChanged
+
 };

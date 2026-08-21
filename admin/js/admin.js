@@ -83,7 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("productSearch");
 
   const productCategoryFilter =
-    document.getElementById("productCategoryFilter");
+    document.getElementById(
+      "productCategoryFilter"
+    );
+
+  const toast =
+    document.getElementById("adminToast");
 
 
   /* ===================================================
@@ -109,7 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function showSection(sectionName) {
 
     const sections =
-      document.querySelectorAll(".admin-section");
+      document.querySelectorAll(
+        ".admin-section"
+      );
 
 
     sections.forEach(section => {
@@ -182,28 +189,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   navItems.forEach(item => {
 
-    item.addEventListener("click", () => {
+    item.addEventListener(
+      "click",
+      () => {
 
-      const section =
-        item.dataset.section;
+        showSection(
+          item.dataset.section
+        );
 
-      showSection(section);
-
-    });
+      }
+    );
 
   });
 
 
   quickActions.forEach(button => {
 
-    button.addEventListener("click", () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      const section =
-        button.dataset.section;
+        showSection(
+          button.dataset.section
+        );
 
-      showSection(section);
-
-    });
+      }
+    );
 
   });
 
@@ -214,11 +225,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (menuBtn && sidebar) {
 
-    menuBtn.addEventListener("click", () => {
+    menuBtn.addEventListener(
+      "click",
+      () => {
 
-      sidebar.classList.toggle("open");
+        sidebar.classList.toggle(
+          "open"
+        );
 
-    });
+      }
+    );
 
   }
 
@@ -226,10 +242,6 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===================================================
      TOAST
   =================================================== */
-
-  const toast =
-    document.getElementById("adminToast");
-
 
   function showToast(
     message,
@@ -259,14 +271,17 @@ document.addEventListener("DOMContentLoaded", () => {
      PRODUCT MODAL
   =================================================== */
 
-  function openProductModal(product = null) {
+  function openProductModal(
+    product = null
+  ) {
 
     if (!productModal) return;
 
 
     if (productFormMessage) {
 
-      productFormMessage.textContent = "";
+      productFormMessage.textContent =
+        "";
 
       productFormMessage.className =
         "form-message";
@@ -275,6 +290,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     if (product) {
+
+      /* ===============================================
+         EDIT PRODUCT
+      =============================================== */
 
       editingProductId =
         product.id;
@@ -291,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(
         "productId"
       ).value =
-        product.id;
+        product.id || "";
 
 
       document.getElementById(
@@ -304,6 +323,12 @@ document.addEventListener("DOMContentLoaded", () => {
         "productPrice"
       ).value =
         product.price ?? "";
+
+
+      document.getElementById(
+        "productOldPrice"
+      ).value =
+        product.oldPrice ?? "";
 
 
       document.getElementById(
@@ -325,6 +350,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       document.getElementById(
+        "productDiscount"
+      ).value =
+        product.discount ?? 0;
+
+
+      document.getElementById(
+        "productRating"
+      ).value =
+        product.rating ?? 0;
+
+
+      document.getElementById(
         "productImage"
       ).value =
         product.image || "";
@@ -342,15 +379,27 @@ document.addEventListener("DOMContentLoaded", () => {
         product.badge || "";
 
 
-      document.getElementById(
-        "productDiscount"
-      ).value =
-        product.discount ?? 0;
+      const featuredInput =
+        document.getElementById(
+          "productFeatured"
+        );
 
+
+      if (featuredInput) {
+
+        featuredInput.checked =
+          product.featured === true;
+
+      }
 
     } else {
 
-      editingProductId = null;
+      /* ===============================================
+         ADD PRODUCT
+      =============================================== */
+
+      editingProductId =
+        null;
 
 
       if (productModalTitle) {
@@ -361,7 +410,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      productForm.reset();
+      if (productForm) {
+
+        productForm.reset();
+
+      }
+
+
+      document.getElementById(
+        "productId"
+      ).value =
+        "";
 
 
       document.getElementById(
@@ -371,14 +430,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       document.getElementById(
-        "productId"
+        "productRating"
       ).value =
-        "";
+        0;
+
+
+      const featuredInput =
+        document.getElementById(
+          "productFeatured"
+        );
+
+
+      if (featuredInput) {
+
+        featuredInput.checked =
+          false;
+
+      }
 
     }
 
 
-    productModal.classList.add("active");
+    productModal.classList.add(
+      "active"
+    );
+
 
     document.body.style.overflow =
       "hidden";
@@ -391,7 +467,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!productModal) return;
 
 
-    productModal.classList.remove("active");
+    productModal.classList.remove(
+      "active"
+    );
+
 
     document.body.style.overflow =
       "";
@@ -404,7 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     ADD PRODUCT
+     ADD PRODUCT BUTTON
   =================================================== */
 
   if (addProductBtn) {
@@ -412,6 +491,10 @@ document.addEventListener("DOMContentLoaded", () => {
     addProductBtn.addEventListener(
       "click",
       () => {
+
+        console.log(
+          "➕ Add Product clicked"
+        );
 
         openProductModal();
 
@@ -422,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     CLOSE MODAL
+     CLOSE PRODUCT MODAL
   =================================================== */
 
   if (closeProductModal) {
@@ -476,7 +559,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (
         event.key === "Escape" &&
         productModal &&
-        productModal.classList.contains("active")
+        productModal.classList.contains(
+          "active"
+        )
       ) {
 
         closeProductModalHandler();
@@ -502,6 +587,10 @@ document.addEventListener("DOMContentLoaded", () => {
           : "No user"
       );
 
+
+      /* ===============================================
+         NOT SIGNED IN
+      =============================================== */
 
       if (!user) {
 
@@ -637,13 +726,20 @@ document.addEventListener("DOMContentLoaded", () => {
         Object.entries(data).forEach(
           ([id, product]) => {
 
-            products.push({
+            if (
+              product &&
+              typeof product === "object"
+            ) {
 
-              id,
+              products.push({
 
-              ...product
+                id,
 
-            });
+                ...product
+
+              });
+
+            }
 
           }
         );
@@ -664,6 +760,18 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(
         "❌ Failed to load products:",
         error
+      );
+
+
+      console.error(
+        "Firebase code:",
+        error?.code
+      );
+
+
+      console.error(
+        "Firebase message:",
+        error?.message
       );
 
 
@@ -704,26 +812,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const filteredProducts =
-      products.filter(product => {
+      products.filter(
+        product => {
 
-        const matchesSearch =
-          !search ||
-          String(product.name || "")
-            .toLowerCase()
-            .includes(search);
-
-
-        const matchesCategory =
-          category === "all" ||
-          product.category === category;
+          const matchesSearch =
+            !search ||
+            String(
+              product.name || ""
+            )
+              .toLowerCase()
+              .includes(search);
 
 
-        return (
-          matchesSearch &&
-          matchesCategory
-        );
+          const matchesCategory =
+            category === "all" ||
+            product.category === category;
 
-      });
+
+          return (
+            matchesSearch &&
+            matchesCategory
+          );
+
+        }
+      );
 
 
     if (
@@ -770,6 +882,12 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
 
+          const status =
+            stock === 0
+              ? "Out of Stock"
+              : "Active";
+
+
           return `
 
             <tr>
@@ -795,10 +913,12 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div>
 
                     <div class="product-table-name">
+
                       ${escapeHtml(
                         product.name ||
                         "Unnamed Product"
                       )}
+
                     </div>
 
                   </div>
@@ -811,19 +931,23 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>
 
                 <span class="product-table-category">
+
                   ${escapeHtml(
                     product.category ||
                     "-"
                   )}
+
                 </span>
 
               </td>
 
 
               <td>
+
                 ₱${formatPrice(
                   product.price
                 )}
+
               </td>
 
 
@@ -832,7 +956,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span
                   class="${stockClass}"
                 >
+
                   ${stock}
+
                 </span>
 
               </td>
@@ -841,7 +967,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>
 
                 <span class="product-status">
-                  Active
+
+                  ${status}
+
                 </span>
 
               </td>
@@ -909,116 +1037,144 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
-    editButtons.forEach(button => {
+    /* ===============================================
+       EDIT
+    =============================================== */
 
-      button.addEventListener(
-        "click",
-        () => {
+    editButtons.forEach(
+      button => {
 
-          const id =
-            button.dataset.editProduct;
+        button.addEventListener(
+          "click",
+          () => {
 
-
-          const product =
-            products.find(
-              item =>
-                item.id === id
-            );
+            const id =
+              button.dataset.editProduct;
 
 
-          if (product) {
+            const product =
+              products.find(
+                item =>
+                  item.id === id
+              );
 
-            openProductModal(
-              product
-            );
+
+            if (product) {
+
+              openProductModal(
+                product
+              );
+
+            }
 
           }
+        );
 
-        }
-      );
-
-    });
-
-
-    deleteButtons.forEach(button => {
-
-      button.addEventListener(
-        "click",
-        async () => {
-
-          const id =
-            button.dataset.deleteProduct;
+      }
+    );
 
 
-          const product =
-            products.find(
-              item =>
-                item.id === id
-            );
+    /* ===============================================
+       DELETE
+    =============================================== */
+
+    deleteButtons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            const id =
+              button.dataset.deleteProduct;
 
 
-          if (!product) return;
+            const product =
+              products.find(
+                item =>
+                  item.id === id
+              );
 
 
-          const confirmed =
-            confirm(
-              `Delete "${product.name}"?`
-            );
+            if (!product) return;
 
 
-          if (!confirmed) return;
+            const confirmed =
+              confirm(
+                `Delete "${product.name}"?`
+              );
 
 
-          try {
-
-            await remove(
-              ref(
-                database,
-                `products/${id}`
-              )
-            );
+            if (!confirmed) return;
 
 
-            showToast(
-              "Product deleted successfully."
-            );
+            try {
+
+              await remove(
+                ref(
+                  database,
+                  `products/${id}`
+                )
+              );
 
 
-            await loadProducts();
+              console.log(
+                "🗑️ Product deleted:",
+                id
+              );
 
-            await updateDashboardStats();
+
+              showToast(
+                "Product deleted successfully."
+              );
 
 
-          } catch (error) {
+              await loadProducts();
 
-  console.error("================================");
-  console.error("❌ PRODUCT SAVE FAILED");
-  console.error("================================");
+              await updateDashboardStats();
 
-  console.error("ERROR OBJECT:", error);
-  console.error("ERROR CODE:", error?.code);
-  console.error("ERROR MESSAGE:", error?.message);
-  console.error("ERROR NAME:", error?.name);
 
-  alert(
-    "FIREBASE ERROR\n\n" +
-    "Code: " +
-    (error?.code || "unknown") +
-    "\n\nMessage: " +
-    (error?.message || "unknown")
-  );
+            } catch (error) {
 
-  showFormError(
-    "Firebase Error: " +
-    (error?.code || error?.message || "Unknown error")
-  );
+              console.error(
+                "================================"
+              );
 
-}
+              console.error(
+                "❌ PRODUCT DELETE FAILED"
+              );
 
-        }
-      );
+              console.error(
+                "================================"
+              );
 
-    });
+              console.error(
+                "Error:",
+                error
+              );
+
+              console.error(
+                "Code:",
+                error?.code
+              );
+
+              console.error(
+                "Message:",
+                error?.message
+              );
+
+
+              showToast(
+                "Failed to delete product."
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
 
   }
 
@@ -1036,6 +1192,25 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
 
 
+        /* =============================================
+           AUTH CHECK
+        ============================================= */
+
+        const currentUser =
+          auth.currentUser;
+
+
+        if (!currentUser) {
+
+          showFormError(
+            "You must be signed in to save a product."
+          );
+
+          return;
+
+        }
+
+
         if (productFormMessage) {
 
           productFormMessage.textContent =
@@ -1048,12 +1223,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           GET FORM VALUES
+           FORM VALUES
         ============================================= */
 
         const name =
           document
-            .getElementById("productName")
+            .getElementById(
+              "productName"
+            )
             .value
             .trim();
 
@@ -1061,49 +1238,42 @@ document.addEventListener("DOMContentLoaded", () => {
         const price =
           Number(
             document
-              .getElementById("productPrice")
+              .getElementById(
+                "productPrice"
+              )
               .value
+          );
+
+
+        const oldPriceInput =
+          document.getElementById(
+            "productOldPrice"
           );
 
 
         const stock =
           Number(
             document
-              .getElementById("productStock")
+              .getElementById(
+                "productStock"
+              )
               .value
           );
 
 
         const category =
           document
-            .getElementById("productCategory")
+            .getElementById(
+              "productCategory"
+            )
             .value;
 
 
         const size =
           document
-            .getElementById("productSize")
-            .value
-            .trim();
-
-
-        const image =
-          document
-            .getElementById("productImage")
-            .value
-            .trim();
-
-
-        const description =
-          document
-            .getElementById("productDescription")
-            .value
-            .trim();
-
-
-        const badge =
-          document
-            .getElementById("productBadge")
+            .getElementById(
+              "productSize"
+            )
             .value
             .trim();
 
@@ -1111,9 +1281,60 @@ document.addEventListener("DOMContentLoaded", () => {
         const discount =
           Number(
             document
-              .getElementById("productDiscount")
+              .getElementById(
+                "productDiscount"
+              )
               .value || 0
           );
+
+
+        const rating =
+          Number(
+            document
+              .getElementById(
+                "productRating"
+              )
+              .value || 0
+          );
+
+
+        const image =
+          document
+            .getElementById(
+              "productImage"
+            )
+            .value
+            .trim();
+
+
+        const description =
+          document
+            .getElementById(
+              "productDescription"
+            )
+            .value
+            .trim();
+
+
+        const badge =
+          document
+            .getElementById(
+              "productBadge"
+            )
+            .value
+            .trim();
+
+
+        const featuredInput =
+          document.getElementById(
+            "productFeatured"
+          );
+
+
+        const featured =
+          featuredInput
+            ? featuredInput.checked
+            : false;
 
 
         /* =============================================
@@ -1196,23 +1417,78 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        if (
+          !Number.isFinite(rating) ||
+          rating < 0 ||
+          rating > 5
+        ) {
+
+          showFormError(
+            "Rating must be between 0 and 5."
+          );
+
+          return;
+
+        }
+
+
         /* =============================================
            OLD PRICE
-           
-           Firebase Rules REQUIRE oldPrice.
-           
-           If discount exists:
-           oldPrice = price / (1 - discount/100)
-
-           If no discount:
-           oldPrice = price
         ============================================= */
 
-        let oldPrice =
-          price;
+        let oldPrice;
 
 
-        if (discount > 0) {
+        if (
+          oldPriceInput &&
+          oldPriceInput.value.trim() !== ""
+        ) {
+
+          oldPrice =
+            Number(
+              oldPriceInput.value
+            );
+
+
+          if (
+            !Number.isFinite(oldPrice) ||
+            oldPrice < 0
+          ) {
+
+            showFormError(
+              "Please enter a valid old price."
+            );
+
+            return;
+
+          }
+
+        } else {
+
+          /*
+            If no old price is provided,
+            use the current price.
+          */
+
+          oldPrice =
+            price;
+
+        }
+
+
+        /* =============================================
+           AUTOMATIC OLD PRICE FROM DISCOUNT
+           
+           Only calculate automatically when
+           old price field is empty.
+        ============================================= */
+
+        if (
+          (!oldPriceInput ||
+            oldPriceInput.value.trim() === "") &&
+          discount > 0 &&
+          discount < 100
+        ) {
 
           const calculatedOldPrice =
             price /
@@ -1236,10 +1512,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           FIREBASE PRODUCT DATA
+           PRODUCT DATA
            
-           IMPORTANT:
-           These fields match your Firebase Rules.
+           Matches Firebase Product Rules.
         ============================================= */
 
         const productData = {
@@ -1254,13 +1529,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
           discount,
 
-          rating: 0,
+          rating,
 
           image,
 
           description,
 
-          featured: false,
+          featured,
 
           stock,
 
@@ -1275,7 +1550,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         console.log(
-          "📦 Product data being saved:",
+          "================================"
+        );
+
+        console.log(
+          "📦 PRODUCT DATA"
+        );
+
+        console.log(
+          "================================"
+        );
+
+        console.log(
           productData
         );
 
@@ -1287,6 +1573,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
 
           if (editingProductId) {
+
+            /* =========================================
+               UPDATE
+            ========================================= */
 
             await update(
               ref(
@@ -1307,8 +1597,11 @@ document.addEventListener("DOMContentLoaded", () => {
               "Product updated successfully."
             );
 
-
           } else {
+
+            /* =========================================
+               CREATE
+            ========================================= */
 
             const productsRef =
               ref(
@@ -1365,76 +1658,116 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           /* =========================================
-             REFRESH
+             REFRESH PRODUCTS
           ========================================= */
 
           await loadProducts();
 
+
+          /*
+            Dashboard stats only reads /products,
+            so it is safe with the current setup.
+          */
+
           await updateDashboardStats();
 
 
-          setTimeout(() => {
+          /* =========================================
+             CLOSE MODAL
+          ========================================= */
 
-            closeProductModalHandler();
+          setTimeout(
+            () => {
 
-          }, 500);
+              closeProductModalHandler();
+
+            },
+            500
+          );
 
 
         } catch (error) {
 
           console.error(
-            "❌ Product save error:",
+            "================================"
+          );
+
+          console.error(
+            "❌ PRODUCT SAVE FAILED"
+          );
+
+          console.error(
+            "================================"
+          );
+
+
+          console.error(
+            "ERROR OBJECT:",
             error
           );
 
 
           console.error(
-            "❌ Firebase error code:",
-            error.code
+            "ERROR CODE:",
+            error?.code
           );
 
 
           console.error(
-            "❌ Firebase error message:",
-            error.message
+            "ERROR MESSAGE:",
+            error?.message
           );
 
 
-          /* =========================================
-             DETAILED ERROR
-          ========================================= */
+          console.error(
+            "ERROR NAME:",
+            error?.name
+          );
+
 
           let errorMessage =
             "Failed to save product.";
 
 
           if (
-            error.code ===
+            error?.code ===
             "PERMISSION_DENIED"
           ) {
 
             errorMessage =
-              "Firebase rejected the product. Check your Database Rules.";
+              "Firebase permission denied. Check your Realtime Database Rules.";
 
           } else if (
-            error.code ===
-            "PERMISSION_DENIED"
+            error?.code ===
+            "DATABASE/UNAVAILABLE"
           ) {
 
             errorMessage =
-              "Permission denied by Firebase.";
+              "Firebase Database is currently unavailable.";
 
           } else if (
-            error.message
+            error?.message
           ) {
 
             errorMessage =
-              `Failed to save product: ${error.message}`;
+              `Firebase error: ${error.message}`;
 
           }
 
 
           showFormError(
+            errorMessage
+          );
+
+
+          /*
+            Show the exact Firebase error
+            in browser console without
+            breaking the page.
+          */
+
+          console.error(
+            "🔥 FINAL FIREBASE ERROR:",
             errorMessage
           );
 
@@ -1472,48 +1805,107 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ===================================================
      DASHBOARD STATS
+     
+     IMPORTANT:
+     
+     This function ONLY reads:
+     
+       /products
+     
+     It does NOT read:
+     
+       /orders
+       /users
+     
+     This prevents the Permission Denied
+     error caused by your current Firebase Rules.
   =================================================== */
 
   async function updateDashboardStats() {
 
-  try {
+    console.log(
+      "📊 Updating dashboard stats..."
+    );
+
 
     /* ===============================================
        PRODUCTS
     =============================================== */
 
-    const productsSnapshot =
-      await get(
-        ref(
-          database,
-          "products"
-        )
+    try {
+
+      const productsSnapshot =
+        await get(
+          ref(
+            database,
+            "products"
+          )
+        );
+
+
+      let totalProducts =
+        0;
+
+
+      if (
+        productsSnapshot.exists()
+      ) {
+
+        const data =
+          productsSnapshot.val();
+
+
+        if (
+          data &&
+          typeof data === "object"
+        ) {
+
+          totalProducts =
+            Object.keys(data).length;
+
+        }
+
+      }
+
+
+      const productCount =
+        document.getElementById(
+          "productCount"
+        );
+
+
+      if (productCount) {
+
+        productCount.textContent =
+          totalProducts;
+
+      }
+
+
+      console.log(
+        "📦 Product count:",
+        totalProducts
       );
 
 
-    let totalProducts = 0;
+    } catch (error) {
 
-
-    if (productsSnapshot.exists()) {
-
-      totalProducts =
-        Object.keys(
-          productsSnapshot.val()
-        ).length;
-
-    }
-
-
-    const productCount =
-      document.getElementById(
-        "productCount"
+      console.error(
+        "❌ Products stats error:",
+        error
       );
 
 
-    if (productCount) {
+      console.error(
+        "Firebase code:",
+        error?.code
+      );
 
-      productCount.textContent =
-        totalProducts;
+
+      console.error(
+        "Firebase message:",
+        error?.message
+      );
 
     }
 
@@ -1521,22 +1913,14 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ===============================================
        ORDERS
        
-       TEMPORARY
+       TEMPORARY ZERO
        
-       We cannot read /orders globally yet
-       because Firebase Rules protect each
-       user's orders.
+       We intentionally do NOT read /orders.
     =============================================== */
 
     const orderCount =
       document.getElementById(
         "orderCount"
-      );
-
-
-    const revenueCount =
-      document.getElementById(
-        "revenueCount"
       );
 
 
@@ -1548,20 +1932,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    if (revenueCount) {
-
-      revenueCount.textContent =
-        "₱0.00";
-
-    }
-
-
     /* ===============================================
        USERS
        
-       TEMPORARY
+       TEMPORARY ZERO
        
-       We cannot read /users globally yet.
+       We intentionally do NOT read /users.
     =============================================== */
 
     const userCount =
@@ -1578,149 +1954,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    console.log(
-      "📊 Dashboard stats updated successfully."
-    );
+    /* ===============================================
+       REVENUE
+       
+       TEMPORARY ZERO
+       
+       Will be connected to Admin Orders later.
+    =============================================== */
 
-
-  } catch (error) {
-
-    console.error(
-      "❌ Product dashboard stats error:",
-      error
-    );
-
-  }
-
-}
-
-      /* ===============================================
-         PRODUCTS
-      =============================================== */
-
-      const productsSnapshot =
-        await get(
-          ref(
-            database,
-            "products"
-          )
-        );
-
-
-      let productCountValue =
-        0;
-
-
-      if (
-        productsSnapshot.exists()
-      ) {
-
-        productCountValue =
-          Object.keys(
-            productsSnapshot.val()
-          ).length;
-
-      }
-
-
-      const productCount =
-        document.getElementById(
-          "productCount"
-        );
-
-
-      if (productCount) {
-
-        productCount.textContent =
-          productCountValue;
-
-      }
-
-
-      /* ===============================================
-         ORDERS
-      =============================================== */
-
-      const orderCount =
-        document.getElementById(
-          "orderCount"
-        );
-
-
-      const revenueCount =
-        document.getElementById(
-          "revenueCount"
-        );
-
-
-      if (orderCount) {
-
-        orderCount.textContent =
-          "0";
-
-      }
-
-
-      if (revenueCount) {
-
-        revenueCount.textContent =
-          "₱0.00";
-
-      }
-
-
-      /*
-        NOTE:
-
-        Your current Firebase Rules protect
-        /orders/$uid.
-
-        The admin dashboard cannot safely read
-        the entire /orders path with those rules.
-
-        We leave these values at zero for now.
-
-        We will build the proper Admin Orders
-        system next.
-      */
-
-
-      /* ===============================================
-         USERS
-      =============================================== */
-
-      const userCount =
-        document.getElementById(
-          "userCount"
-        );
-
-
-      if (userCount) {
-
-        userCount.textContent =
-          "0";
-
-      }
-
-
-      /*
-        Same situation for /users.
-
-        Your rules allow a user to read/write
-        only their own /users/$uid.
-
-        We'll create proper admin access later.
-      */
-
-
-    } catch (error) {
-
-      console.error(
-        "❌ Dashboard stats error:",
-        error
+    const revenueCount =
+      document.getElementById(
+        "revenueCount"
       );
 
+
+    if (revenueCount) {
+
+      revenueCount.textContent =
+        "₱0.00";
+
     }
+
+
+    console.log(
+      "✅ Dashboard stats updated successfully."
+    );
 
   }
 
@@ -1754,12 +2012,15 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-          setTimeout(() => {
+          setTimeout(
+            () => {
 
-            window.location.href =
-              "../index.html";
+              window.location.href =
+                "../index.html";
 
-          }, 700);
+            },
+            700
+          );
 
 
         } catch (error) {
@@ -1812,7 +2073,9 @@ document.addEventListener("DOMContentLoaded", () => {
   ) {
 
     const number =
-      Number(value || 0);
+      Number(
+        value || 0
+      );
 
 
     return number.toLocaleString(

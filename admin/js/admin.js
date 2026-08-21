@@ -3,6 +3,7 @@
    ADMIN DASHBOARD
    ADMIN.JS
 ===================================================== */
+console.log("🔥🔥🔥 NEW ADMIN.JS VERSION LOADED 🔥🔥🔥");
 
 import {
   auth,
@@ -1790,3 +1791,4 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
 });
+console.log("🔥🔥🔥 NEW ADMIN.JS END 🔥🔥🔥");

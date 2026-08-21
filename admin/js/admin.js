@@ -1476,7 +1476,123 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function updateDashboardStats() {
 
-    try {
+  try {
+
+    /* ===============================================
+       PRODUCTS
+    =============================================== */
+
+    const productsSnapshot =
+      await get(
+        ref(
+          database,
+          "products"
+        )
+      );
+
+
+    let totalProducts = 0;
+
+
+    if (productsSnapshot.exists()) {
+
+      totalProducts =
+        Object.keys(
+          productsSnapshot.val()
+        ).length;
+
+    }
+
+
+    const productCount =
+      document.getElementById(
+        "productCount"
+      );
+
+
+    if (productCount) {
+
+      productCount.textContent =
+        totalProducts;
+
+    }
+
+
+    /* ===============================================
+       ORDERS
+       
+       TEMPORARY
+       
+       We cannot read /orders globally yet
+       because Firebase Rules protect each
+       user's orders.
+    =============================================== */
+
+    const orderCount =
+      document.getElementById(
+        "orderCount"
+      );
+
+
+    const revenueCount =
+      document.getElementById(
+        "revenueCount"
+      );
+
+
+    if (orderCount) {
+
+      orderCount.textContent =
+        "0";
+
+    }
+
+
+    if (revenueCount) {
+
+      revenueCount.textContent =
+        "₱0.00";
+
+    }
+
+
+    /* ===============================================
+       USERS
+       
+       TEMPORARY
+       
+       We cannot read /users globally yet.
+    =============================================== */
+
+    const userCount =
+      document.getElementById(
+        "userCount"
+      );
+
+
+    if (userCount) {
+
+      userCount.textContent =
+        "0";
+
+    }
+
+
+    console.log(
+      "📊 Dashboard stats updated successfully."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ Product dashboard stats error:",
+      error
+    );
+
+  }
+
+}
 
       /* ===============================================
          PRODUCTS

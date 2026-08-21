@@ -1,12 +1,7 @@
 /* =====================================================
    ZOLA'S CLOSET
    FIREBASE CONFIGURATION
-   FIREBASE AUTH + REALTIME DATABASE
-===================================================== */
-
-
-/* =====================================================
-   FIREBASE APP
+   AUTH + REALTIME DATABASE
 ===================================================== */
 
 import {
@@ -47,7 +42,10 @@ import {
   getDatabase,
   ref,
   set,
-  get
+  get,
+  push,
+  update,
+  remove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
@@ -129,13 +127,6 @@ const googleProvider =
   new GoogleAuthProvider();
 
 
-/*
-  Optional:
-  Force Google account selection
-  instead of automatically using
-  a previously signed-in account.
-*/
-
 googleProvider.setCustomParameters({
   prompt: "select_account"
 });
@@ -176,13 +167,16 @@ export {
   database,
   ref,
   set,
-  get
+  get,
+  push,
+  update,
+  remove
 
 };
 
 
 /* =====================================================
-   FIREBASE READY MESSAGE
+   FIREBASE READY
 ===================================================== */
 
 console.log(
@@ -195,4 +189,8 @@ console.log(
 
 console.log(
   "🔥 Realtime Database: Ready"
+);
+
+console.log(
+  "🛍️ Product CRUD functions: Ready"
 );

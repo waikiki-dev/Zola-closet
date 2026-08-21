@@ -1,12 +1,13 @@
 /* =====================================================
    ZOLA'S CLOSET
    ADMIN DASHBOARD
-   PRODUCT MODAL TEST
+   PRODUCT MODAL
 ===================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
   console.log("🎀 ADMIN JS LOADED");
+
 
   /* =====================================================
      ELEMENTS
@@ -39,16 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     productModal
   );
 
-  console.log(
-    "Close Button:",
-    closeProductModal
-  );
-
-  console.log(
-    "Cancel Button:",
-    cancelProductBtn
-  );
-
 
   /* =====================================================
      OPEN PRODUCT MODAL
@@ -61,10 +52,12 @@ document.addEventListener("DOMContentLoaded", () => {
       () => {
 
         console.log(
-          "🛍️ Add Product button clicked"
+          "🛍️ Add Product clicked"
         );
 
-        productModal.classList.add("show");
+        productModal.classList.add(
+          "active"
+        );
 
       }
     );
@@ -81,7 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!productModal)
       return;
 
-    productModal.classList.remove("show");
+    productModal.classList.remove(
+      "active"
+    );
 
   }
 
@@ -115,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =====================================================
-     CLICK OUTSIDE
+     CLICK OUTSIDE MODAL
   ===================================================== */
 
   if (productModal) {

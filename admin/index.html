@@ -1,1 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Zola's Closet Admin Dashboard"
+  >
+
+  <title>Zola's Closet | Admin Dashboard</title>
+
+  <link
+    rel="stylesheet"
+    href="css/admin.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
+
+    <div class="sidebar-brand">
+
+      <a
+        href="../index.html"
+        class="admin-logo"
+      >
+        Zola's<span>Closet</span>
+      </a>
+
+      <span class="admin-label">
+        ADMIN
+      </span>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="admin-nav">
+
+      <button
+        class="nav-item active"
+        data-section="dashboard"
+        type="button"
+      >
+
+        <span class="nav-icon">⌂</span>
+
+        <span>Dashboard</span>
+
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-section="products"
+        type="button"
+      >
+
+        <span class="nav-icon">🛍</span>
+
+        <span>Products</span>
+
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-section="orders"
+        type="button"
+      >
+
+        <span class="nav-icon">▤</span>
+
+        <span>Orders</span>
+
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-section="users"
+        type="button"
+      >
+
+        <span class="nav-icon">♙</span>
+
+        <span>Users</span>
+
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-section="settings"
+        type="button"
+      >
+
+        <span class="nav-icon">⚙</span>
+
+        <span>Settings</span>
+
+      </button>
+
+    </nav>
+
+
+    <!-- SIDEBAR FOOTER -->
+
+    <div class="sidebar-footer">
+
+      <a
+        href="../index.html"
+        class="back-store"
+      >
+        ← Back to Store
+      </a>
+
+      <button
+        id="logoutBtn"
+        class="logout-button"
+        type="button"
+      >
+        Sign Out
+      </button>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
+  <main class="admin-main">
+
+
+    <!-- TOPBAR -->
+
+    <header class="admin-header">
+
+      <button
+        id="menuBtn"
+        class="menu-button"
+        type="button"
+        aria-label="Open menu"
+      >
+        ☰
+      </button>
+
+
+      <div class="header-title">
+
+        <h1 id="pageTitle">
+          Dashboard
+        </h1>
+
+        <p>
+          Manage your Zola's Closet store.
+        </p>
+
+      </div>
+
+
+      <div class="admin-profile">
+
+        <div
+          class="profile-avatar"
+          id="profileAvatar"
+        >
+          A
+        </div>
+
+        <div class="profile-info">
+
+          <strong id="adminName">
+            Admin
+          </strong>
+
+          <span id="adminEmail">
+            Loading...
+          </span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         CONTENT
+    ====================================================== -->
+
+    <div class="admin-content">
+
+
+      <!-- =================================================
+           DASHBOARD
+      ================================================== -->
+
+      <section
+        class="admin-section active"
+        id="dashboardSection"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="eyebrow">
+              OVERVIEW
+            </span>
+
+            <h2>
+              Store Dashboard
+            </h2>
+
+            <p>
+              Here's what's happening in your store.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- STAT CARDS -->
+
+        <div class="stats-grid">
+
+
+          <div class="stat-card">
+
+            <div class="stat-icon">
+              🛍
+            </div>
+
+            <div>
+
+              <span>
+                Products
+              </span>
+
+              <strong id="productCount">
+                0
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="stat-icon">
+              📦
+            </div>
+
+            <div>
+
+              <span>
+                Orders
+              </span>
+
+              <strong id="orderCount">
+                0
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="stat-icon">
+              👥
+            </div>
+
+            <div>
+
+              <span>
+                Users
+              </span>
+
+              <strong id="userCount">
+                0
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <div class="stat-icon">
+              ₱
+            </div>
+
+            <div>
+
+              <span>
+                Revenue
+              </span>
+
+              <strong id="revenueCount">
+                ₱0
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- QUICK ACTIONS -->
+
+        <div class="dashboard-grid">
+
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <h3>
+                  Quick Actions
+                </h3>
+
+                <p>
+                  Manage your store quickly.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+              <button
+                class="quick-action"
+                data-section="products"
+                type="button"
+              >
+
+                <span>＋</span>
+
+                <div>
+
+                  <strong>
+                    Add Product
+                  </strong>
+
+                  <small>
+                    Create a new product
+                  </small>
+
+                </div>
+
+              </button>
+
+
+              <button
+                class="quick-action"
+                data-section="orders"
+                type="button"
+              >
+
+                <span>📦</span>
+
+                <div>
+
+                  <strong>
+                    View Orders
+                  </strong>
+
+                  <small>
+                    Check customer orders
+                  </small>
+
+                </div>
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- SYSTEM STATUS -->
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <h3>
+                  System Status
+                </h3>
+
+                <p>
+                  Store services.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="status-list">
+
+              <div class="status-row">
+
+                <span>
+                  Firebase
+                </span>
+
+                <strong class="status-online">
+                  ● Connected
+                </strong>
+
+              </div>
+
+
+              <div class="status-row">
+
+                <span>
+                  Authentication
+                </span>
+
+                <strong class="status-online">
+                  ● Ready
+                </strong>
+
+              </div>
+
+
+              <div class="status-row">
+
+                <span>
+                  Database
+                </span>
+
+                <strong class="status-online">
+                  ● Ready
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           PRODUCTS
+      ================================================== -->
+
+      <section
+        class="admin-section"
+        id="productsSection"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="eyebrow">
+              STORE
+            </span>
+
+            <h2>
+              Products
+            </h2>
+
+            <p>
+              Manage products displayed in Zola's Closet.
+            </p>
+
+          </div>
+
+
+          <button
+            id="addProductBtn"
+            class="primary-button"
+            type="button"
+          >
+            ＋ Add Product
+          </button>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div class="table-toolbar">
+
+            <input
+              type="search"
+              id="productSearch"
+              placeholder="Search products..."
+            >
+
+
+            <select id="productCategoryFilter">
+
+              <option value="all">
+                All Categories
+              </option>
+
+              <option value="girls">
+                Girls
+              </option>
+
+              <option value="boys">
+                Boys
+              </option>
+
+              <option value="baby">
+                Baby
+              </option>
+
+              <option value="sets">
+                Sets
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div
+            class="products-table-wrapper"
+          >
+
+            <table class="products-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>Product</th>
+
+                  <th>Category</th>
+
+                  <th>Price</th>
+
+                  <th>Stock</th>
+
+                  <th>Status</th>
+
+                  <th>Actions</th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="productsTableBody">
+
+                <tr>
+
+                  <td
+                    colspan="6"
+                    class="empty-table"
+                  >
+                    Loading products...
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           ORDERS
+      ================================================== -->
+
+      <section
+        class="admin-section"
+        id="ordersSection"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="eyebrow">
+              SALES
+            </span>
+
+            <h2>
+              Orders
+            </h2>
+
+            <p>
+              Manage customer orders.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div
+            id="ordersContainer"
+            class="orders-container"
+          >
+
+            <div class="empty-state">
+
+              <div>
+                📦
+              </div>
+
+              <h3>
+                No orders yet
+              </h3>
+
+              <p>
+                Customer orders will appear here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           USERS
+      ================================================== -->
+
+      <section
+        class="admin-section"
+        id="usersSection"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="eyebrow">
+              CUSTOMERS
+            </span>
+
+            <h2>
+              Users
+            </h2>
+
+            <p>
+              View registered customers.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div
+            id="usersContainer"
+            class="users-container"
+          >
+
+            <div class="empty-state">
+
+              <div>
+                👥
+              </div>
+
+              <h3>
+                Users
+              </h3>
+
+              <p>
+                Registered customers will appear here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           SETTINGS
+      ================================================== -->
+
+      <section
+        class="admin-section"
+        id="settingsSection"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <span class="eyebrow">
+              CONFIGURATION
+            </span>
+
+            <h2>
+              Settings
+            </h2>
+
+            <p>
+              Manage your admin dashboard settings.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel settings-panel">
+
+          <h3>
+            Admin Account
+          </h3>
+
+          <div class="settings-row">
+
+            <span>
+              Signed in as
+            </span>
+
+            <strong id="settingsEmail">
+              Loading...
+            </strong>
+
+          </div>
+
+
+          <div class="settings-row">
+
+            <span>
+              Authentication
+            </span>
+
+            <strong>
+              Firebase Authentication
+            </strong>
+
+          </div>
+
+
+          <div class="settings-row">
+
+            <span>
+              Database
+            </span>
+
+            <strong>
+              Firebase Realtime Database
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+
+  <!-- =====================================================
+       PRODUCT MODAL
+  ====================================================== -->
+
+  <div
+    class="admin-modal-overlay"
+    id="productModal"
+  >
+
+    <div class="admin-modal">
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="eyebrow">
+            PRODUCT
+          </span>
+
+          <h2 id="productModalTitle">
+            Add Product
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeProductModal"
+          class="modal-close"
+          type="button"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <form id="productForm">
+
+        <input
+          type="hidden"
+          id="productId"
+        >
+
+
+        <div class="form-grid">
+
+
+          <div class="form-group full">
+
+            <label for="productName">
+              Product Name
+            </label>
+
+            <input
+              id="productName"
+              type="text"
+              placeholder="Cute Pink Dress"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productPrice">
+              Price
+            </label>
+
+            <input
+              id="productPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="499"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productStock">
+              Stock
+            </label>
+
+            <input
+              id="productStock"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="10"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productCategory">
+              Category
+            </label>
+
+            <select id="productCategory" required>
+
+              <option value="">
+                Select category
+              </option>
+
+              <option value="girls">
+                Girls
+              </option>
+
+              <option value="boys">
+                Boys
+              </option>
+
+              <option value="baby">
+                Baby
+              </option>
+
+              <option value="sets">
+                Sets
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productSize">
+              Size
+            </label>
+
+            <input
+              id="productSize"
+              type="text"
+              placeholder="2T, 3T, 4T"
+            >
+
+          </div>
+
+
+          <div class="form-group full">
+
+            <label for="productImage">
+              Product Image URL
+            </label>
+
+            <input
+              id="productImage"
+              type="url"
+              placeholder="https://..."
+              required
+            >
+
+            <small>
+              Use your Cloudinary or image-hosting URL.
+            </small>
+
+          </div>
+
+
+          <div class="form-group full">
+
+            <label for="productDescription">
+              Description
+            </label>
+
+            <textarea
+              id="productDescription"
+              rows="4"
+              placeholder="Describe this product..."
+            ></textarea>
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productBadge">
+              Badge
+            </label>
+
+            <input
+              id="productBadge"
+              type="text"
+              placeholder="NEW / SALE"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="productDiscount">
+              Discount %
+            </label>
+
+            <input
+              id="productDiscount"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+            >
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="productFormMessage"
+          class="form-message"
+        ></div>
+
+
+        <div class="modal-actions">
+
+          <button
+            id="cancelProductBtn"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+
+          <button
+            class="primary-button"
+            type="submit"
+          >
+            Save Product
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div
+    id="adminToast"
+    class="admin-toast"
+  >
+    Success
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
+  <script
+    type="module"
+    src="../js/admin/admin.js"
+  ></script>
+
+
+</body>
+
+</html>

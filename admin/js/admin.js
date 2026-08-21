@@ -991,23 +991,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
           } catch (error) {
 
-            console.error(
-              "❌ Delete error:",
-              error
-            );
+  console.error("================================");
+  console.error("❌ PRODUCT SAVE FAILED");
+  console.error("================================");
 
+  console.error("ERROR OBJECT:", error);
+  console.error("ERROR CODE:", error?.code);
+  console.error("ERROR MESSAGE:", error?.message);
+  console.error("ERROR NAME:", error?.name);
 
-            console.error(
-              "Firebase error code:",
-              error.code
-            );
+  alert(
+    "FIREBASE ERROR\n\n" +
+    "Code: " +
+    (error?.code || "unknown") +
+    "\n\nMessage: " +
+    (error?.message || "unknown")
+  );
 
+  showFormError(
+    "Firebase Error: " +
+    (error?.code || error?.message || "Unknown error")
+  );
 
-            showToast(
-              "Failed to delete product."
-            );
-
-          }
+}
 
         }
       );

@@ -83,9 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("productSearch");
 
   const productCategoryFilter =
-    document.getElementById(
-      "productCategoryFilter"
-    );
+    document.getElementById("productCategoryFilter");
 
   const toast =
     document.getElementById("adminToast");
@@ -114,9 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showSection(sectionName) {
 
     const sections =
-      document.querySelectorAll(
-        ".admin-section"
-      );
+      document.querySelectorAll(".admin-section");
 
 
     sections.forEach(section => {
@@ -151,20 +147,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const titles = {
 
-      dashboard:
-        "Dashboard",
-
-      products:
-        "Products",
-
-      orders:
-        "Orders",
-
-      users:
-        "Users",
-
-      settings:
-        "Settings"
+      dashboard: "Dashboard",
+      products: "Products",
+      orders: "Orders",
+      users: "Users",
+      settings: "Settings"
 
     };
 
@@ -258,11 +245,14 @@ document.addEventListener("DOMContentLoaded", () => {
     toast.classList.add("show");
 
 
-    setTimeout(() => {
+    setTimeout(
+      () => {
 
-      toast.classList.remove("show");
+        toast.classList.remove("show");
 
-    }, duration);
+      },
+      duration
+    );
 
   }
 
@@ -271,9 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
      PRODUCT MODAL
   =================================================== */
 
-  function openProductModal(
-    product = null
-  ) {
+  function openProductModal(product = null) {
 
     if (!productModal) return;
 
@@ -291,10 +279,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (product) {
 
-      /* ===============================================
-         EDIT PRODUCT
-      =============================================== */
-
       editingProductId =
         product.id;
 
@@ -310,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(
         "productId"
       ).value =
-        product.id || "";
+        product.id;
 
 
       document.getElementById(
@@ -323,12 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "productPrice"
       ).value =
         product.price ?? "";
-
-
-      document.getElementById(
-        "productOldPrice"
-      ).value =
-        product.oldPrice ?? "";
 
 
       document.getElementById(
@@ -350,18 +328,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       document.getElementById(
-        "productDiscount"
-      ).value =
-        product.discount ?? 0;
-
-
-      document.getElementById(
-        "productRating"
-      ).value =
-        product.rating ?? 0;
-
-
-      document.getElementById(
         "productImage"
       ).value =
         product.image || "";
@@ -379,24 +345,12 @@ document.addEventListener("DOMContentLoaded", () => {
         product.badge || "";
 
 
-      const featuredInput =
-        document.getElementById(
-          "productFeatured"
-        );
-
-
-      if (featuredInput) {
-
-        featuredInput.checked =
-          product.featured === true;
-
-      }
+      document.getElementById(
+        "productDiscount"
+      ).value =
+        product.discount ?? 0;
 
     } else {
-
-      /* ===============================================
-         ADD PRODUCT
-      =============================================== */
 
       editingProductId =
         null;
@@ -410,17 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      if (productForm) {
-
-        productForm.reset();
-
-      }
-
-
-      document.getElementById(
-        "productId"
-      ).value =
-        "";
+      productForm.reset();
 
 
       document.getElementById(
@@ -430,23 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       document.getElementById(
-        "productRating"
+        "productId"
       ).value =
-        0;
-
-
-      const featuredInput =
-        document.getElementById(
-          "productFeatured"
-        );
-
-
-      if (featuredInput) {
-
-        featuredInput.checked =
-          false;
-
-      }
+        "";
 
     }
 
@@ -483,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     ADD PRODUCT BUTTON
+     ADD PRODUCT
   =================================================== */
 
   if (addProductBtn) {
@@ -491,10 +421,6 @@ document.addEventListener("DOMContentLoaded", () => {
     addProductBtn.addEventListener(
       "click",
       () => {
-
-        console.log(
-          "➕ Add Product clicked"
-        );
 
         openProductModal();
 
@@ -588,10 +514,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
-      /* ===============================================
-         NOT SIGNED IN
-      =============================================== */
-
       if (!user) {
 
         if (adminName) {
@@ -672,12 +594,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       /* ===============================================
-         LOAD DATA
+         LOAD PRODUCTS
       =============================================== */
 
       await loadProducts();
 
-      await updateDashboardStats();
+
+      /* ===============================================
+         UPDATE DASHBOARD
+      =============================================== */
+
+      updateDashboardStats();
 
     }
   );
@@ -726,20 +653,13 @@ document.addEventListener("DOMContentLoaded", () => {
         Object.entries(data).forEach(
           ([id, product]) => {
 
-            if (
-              product &&
-              typeof product === "object"
-            ) {
+            products.push({
 
-              products.push({
+              id,
 
-                id,
+              ...product
 
-                ...product
-
-              });
-
-            }
+            });
 
           }
         );
@@ -755,23 +675,24 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
+      /*
+        IMPORTANT:
+
+        Dashboard product count uses
+        this already-loaded array.
+
+        We do NOT make another Firebase
+        request here.
+      */
+
+      updateDashboardStats();
+
+
     } catch (error) {
 
       console.error(
         "❌ Failed to load products:",
         error
-      );
-
-
-      console.error(
-        "Firebase code:",
-        error?.code
-      );
-
-
-      console.error(
-        "Firebase message:",
-        error?.message
       );
 
 
@@ -857,160 +778,150 @@ document.addEventListener("DOMContentLoaded", () => {
 
     productsTableBody.innerHTML =
       filteredProducts
-        .map(product => {
+        .map(
+          product => {
 
-          const stock =
-            Number(
-              product.stock || 0
-            );
-
-
-          let stockClass =
-            "stock-good";
+            const stock =
+              Number(
+                product.stock || 0
+              );
 
 
-          if (stock === 0) {
-
-            stockClass =
-              "stock-out";
-
-          } else if (stock <= 5) {
-
-            stockClass =
-              "stock-low";
-
-          }
+            let stockClass =
+              "stock-good";
 
 
-          const status =
-            stock === 0
-              ? "Out of Stock"
-              : "Active";
+            if (
+              stock === 0
+            ) {
+
+              stockClass =
+                "stock-out";
+
+            } else if (
+              stock <= 5
+            ) {
+
+              stockClass =
+                "stock-low";
+
+            }
 
 
-          return `
+            return `
 
-            <tr>
+              <tr>
 
-              <td>
+                <td>
 
-                <div class="product-table-info">
+                  <div class="product-table-info">
 
-                  <img
-                    src="${escapeHtml(
-                      product.image || ""
-                    )}"
-                    class="product-table-image"
-                    alt="${escapeHtml(
-                      product.name ||
-                      "Product"
-                    )}"
-                    onerror="
-                      this.style.opacity='0.4';
-                    "
-                  >
-
-                  <div>
-
-                    <div class="product-table-name">
-
-                      ${escapeHtml(
+                    <img
+                      src="${escapeHtml(
+                        product.image || ""
+                      )}"
+                      class="product-table-image"
+                      alt="${escapeHtml(
                         product.name ||
-                        "Unnamed Product"
-                      )}
+                        "Product"
+                      )}"
+                      onerror="
+                        this.style.opacity='0.4';
+                      "
+                    >
+
+                    <div>
+
+                      <div class="product-table-name">
+                        ${escapeHtml(
+                          product.name ||
+                          "Unnamed Product"
+                        )}
+                      </div>
 
                     </div>
 
                   </div>
 
-                </div>
-
-              </td>
+                </td>
 
 
-              <td>
+                <td>
 
-                <span class="product-table-category">
+                  <span class="product-table-category">
+                    ${escapeHtml(
+                      product.category ||
+                      "-"
+                    )}
+                  </span>
 
-                  ${escapeHtml(
-                    product.category ||
-                    "-"
+                </td>
+
+
+                <td>
+                  ₱${formatPrice(
+                    product.price
                   )}
-
-                </span>
-
-              </td>
+                </td>
 
 
-              <td>
+                <td>
 
-                ₱${formatPrice(
-                  product.price
-                )}
-
-              </td>
-
-
-              <td>
-
-                <span
-                  class="${stockClass}"
-                >
-
-                  ${stock}
-
-                </span>
-
-              </td>
-
-
-              <td>
-
-                <span class="product-status">
-
-                  ${status}
-
-                </span>
-
-              </td>
-
-
-              <td>
-
-                <div class="table-actions">
-
-                  <button
-                    type="button"
-                    class="table-action"
-                    data-edit-product="${escapeHtml(
-                      product.id
-                    )}"
-                    title="Edit"
+                  <span
+                    class="${stockClass}"
                   >
-                    ✏️
-                  </button>
+                    ${stock}
+                  </span>
+
+                </td>
 
 
-                  <button
-                    type="button"
-                    class="table-action delete"
-                    data-delete-product="${escapeHtml(
-                      product.id
-                    )}"
-                    title="Delete"
-                  >
-                    🗑️
-                  </button>
+                <td>
 
-                </div>
+                  <span class="product-status">
+                    Active
+                  </span>
 
-              </td>
+                </td>
 
-            </tr>
 
-          `;
+                <td>
 
-        })
+                  <div class="table-actions">
+
+                    <button
+                      type="button"
+                      class="table-action"
+                      data-edit-product="${escapeHtml(
+                        product.id
+                      )}"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="table-action delete"
+                      data-delete-product="${escapeHtml(
+                        product.id
+                      )}"
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            `;
+
+          }
+        )
         .join("");
 
 
@@ -1036,10 +947,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "[data-delete-product]"
       );
 
-
-    /* ===============================================
-       EDIT
-    =============================================== */
 
     editButtons.forEach(
       button => {
@@ -1073,10 +980,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     );
 
-
-    /* ===============================================
-       DELETE
-    =============================================== */
 
     deleteButtons.forEach(
       button => {
@@ -1118,12 +1021,6 @@ document.addEventListener("DOMContentLoaded", () => {
               );
 
 
-              console.log(
-                "🗑️ Product deleted:",
-                id
-              );
-
-
               showToast(
                 "Product deleted successfully."
               );
@@ -1131,35 +1028,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
               await loadProducts();
 
-              await updateDashboardStats();
-
 
             } catch (error) {
 
               console.error(
-                "================================"
-              );
-
-              console.error(
-                "❌ PRODUCT DELETE FAILED"
-              );
-
-              console.error(
-                "================================"
-              );
-
-              console.error(
-                "Error:",
+                "❌ Product delete error:",
                 error
               );
 
+
               console.error(
-                "Code:",
+                "Firebase code:",
                 error?.code
               );
 
+
               console.error(
-                "Message:",
+                "Firebase message:",
                 error?.message
               );
 
@@ -1190,25 +1075,6 @@ document.addEventListener("DOMContentLoaded", () => {
       async event => {
 
         event.preventDefault();
-
-
-        /* =============================================
-           AUTH CHECK
-        ============================================= */
-
-        const currentUser =
-          auth.currentUser;
-
-
-        if (!currentUser) {
-
-          showFormError(
-            "You must be signed in to save a product."
-          );
-
-          return;
-
-        }
 
 
         if (productFormMessage) {
@@ -1245,12 +1111,6 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-        const oldPriceInput =
-          document.getElementById(
-            "productOldPrice"
-          );
-
-
         const stock =
           Number(
             document
@@ -1276,26 +1136,6 @@ document.addEventListener("DOMContentLoaded", () => {
             )
             .value
             .trim();
-
-
-        const discount =
-          Number(
-            document
-              .getElementById(
-                "productDiscount"
-              )
-              .value || 0
-          );
-
-
-        const rating =
-          Number(
-            document
-              .getElementById(
-                "productRating"
-              )
-              .value || 0
-          );
 
 
         const image =
@@ -1325,16 +1165,14 @@ document.addEventListener("DOMContentLoaded", () => {
             .trim();
 
 
-        const featuredInput =
-          document.getElementById(
-            "productFeatured"
+        const discount =
+          Number(
+            document
+              .getElementById(
+                "productDiscount"
+              )
+              .value || 0
           );
-
-
-        const featured =
-          featuredInput
-            ? featuredInput.checked
-            : false;
 
 
         /* =============================================
@@ -1417,78 +1255,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        if (
-          !Number.isFinite(rating) ||
-          rating < 0 ||
-          rating > 5
-        ) {
-
-          showFormError(
-            "Rating must be between 0 and 5."
-          );
-
-          return;
-
-        }
-
-
         /* =============================================
            OLD PRICE
         ============================================= */
 
-        let oldPrice;
+        let oldPrice =
+          price;
 
 
-        if (
-          oldPriceInput &&
-          oldPriceInput.value.trim() !== ""
-        ) {
-
-          oldPrice =
-            Number(
-              oldPriceInput.value
-            );
-
-
-          if (
-            !Number.isFinite(oldPrice) ||
-            oldPrice < 0
-          ) {
-
-            showFormError(
-              "Please enter a valid old price."
-            );
-
-            return;
-
-          }
-
-        } else {
-
-          /*
-            If no old price is provided,
-            use the current price.
-          */
-
-          oldPrice =
-            price;
-
-        }
-
-
-        /* =============================================
-           AUTOMATIC OLD PRICE FROM DISCOUNT
-           
-           Only calculate automatically when
-           old price field is empty.
-        ============================================= */
-
-        if (
-          (!oldPriceInput ||
-            oldPriceInput.value.trim() === "") &&
-          discount > 0 &&
-          discount < 100
-        ) {
+        if (discount > 0) {
 
           const calculatedOldPrice =
             price /
@@ -1513,36 +1288,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* =============================================
            PRODUCT DATA
-           
-           Matches Firebase Product Rules.
         ============================================= */
 
         const productData = {
 
           name,
-
           category,
-
           price,
-
           oldPrice,
-
           discount,
-
-          rating,
-
+          rating: 0,
           image,
-
           description,
-
-          featured,
-
+          featured: false,
           stock,
-
           size,
-
           badge,
-
           updatedAt:
             Date.now()
 
@@ -1550,33 +1311,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         console.log(
-          "================================"
-        );
-
-        console.log(
-          "📦 PRODUCT DATA"
-        );
-
-        console.log(
-          "================================"
-        );
-
-        console.log(
+          "📦 Product data:",
           productData
         );
 
 
         /* =============================================
-           SAVE TO FIREBASE
+           FIREBASE SAVE
         ============================================= */
 
         try {
 
           if (editingProductId) {
-
-            /* =========================================
-               UPDATE
-            ========================================= */
 
             await update(
               ref(
@@ -1598,10 +1344,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
           } else {
-
-            /* =========================================
-               CREATE
-            ========================================= */
 
             const productsRef =
               ref(
@@ -1643,7 +1385,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           /* =========================================
-             SUCCESS MESSAGE
+             SUCCESS
           ========================================= */
 
           if (productFormMessage) {
@@ -1658,23 +1400,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           /* =========================================
-             REFRESH PRODUCTS
+             REFRESH PRODUCTS ONLY
           ========================================= */
 
           await loadProducts();
 
-
-          /*
-            Dashboard stats only reads /products,
-            so it is safe with the current setup.
-          */
-
-          await updateDashboardStats();
-
-
-          /* =========================================
-             CLOSE MODAL
-          ========================================= */
 
           setTimeout(
             () => {
@@ -1700,28 +1430,19 @@ document.addEventListener("DOMContentLoaded", () => {
             "================================"
           );
 
-
           console.error(
             "ERROR OBJECT:",
             error
           );
-
 
           console.error(
             "ERROR CODE:",
             error?.code
           );
 
-
           console.error(
             "ERROR MESSAGE:",
             error?.message
-          );
-
-
-          console.error(
-            "ERROR NAME:",
-            error?.name
           );
 
 
@@ -1738,36 +1459,16 @@ document.addEventListener("DOMContentLoaded", () => {
               "Firebase permission denied. Check your Realtime Database Rules.";
 
           } else if (
-            error?.code ===
-            "DATABASE/UNAVAILABLE"
-          ) {
-
-            errorMessage =
-              "Firebase Database is currently unavailable.";
-
-          } else if (
             error?.message
           ) {
 
             errorMessage =
-              `Firebase error: ${error.message}`;
+              `Firebase Error: ${error.message}`;
 
           }
 
 
           showFormError(
-            errorMessage
-          );
-
-
-          /*
-            Show the exact Firebase error
-            in browser console without
-            breaking the page.
-          */
-
-          console.error(
-            "🔥 FINAL FIREBASE ERROR:",
             errorMessage
           );
 
@@ -1808,64 +1509,28 @@ document.addEventListener("DOMContentLoaded", () => {
      
      IMPORTANT:
      
-     This function ONLY reads:
+     We ONLY use the already loaded
+     products array here.
      
-       /products
-     
-     It does NOT read:
-     
+     We DO NOT call:
        /orders
        /users
      
-     This prevents the Permission Denied
-     error caused by your current Firebase Rules.
+     because your current Firebase
+     Rules do not allow global access
+     to those paths.
   =================================================== */
 
-  async function updateDashboardStats() {
-
-    console.log(
-      "📊 Updating dashboard stats..."
-    );
-
-
-    /* ===============================================
-       PRODUCTS
-    =============================================== */
+  function updateDashboardStats() {
 
     try {
 
-      const productsSnapshot =
-        await get(
-          ref(
-            database,
-            "products"
-          )
-        );
+      /* =============================================
+         PRODUCTS
+      ============================================= */
 
-
-      let totalProducts =
-        0;
-
-
-      if (
-        productsSnapshot.exists()
-      ) {
-
-        const data =
-          productsSnapshot.val();
-
-
-        if (
-          data &&
-          typeof data === "object"
-        ) {
-
-          totalProducts =
-            Object.keys(data).length;
-
-        }
-
-      }
+      const totalProducts =
+        products.length;
 
 
       const productCount =
@@ -1882,103 +1547,92 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
+      /* =============================================
+         ORDERS
+         
+         TEMPORARY
+         
+         Orders system will be implemented
+         with proper admin permissions later.
+      ============================================= */
+
+      const orderCount =
+        document.getElementById(
+          "orderCount"
+        );
+
+
+      const revenueCount =
+        document.getElementById(
+          "revenueCount"
+        );
+
+
+      if (orderCount) {
+
+        orderCount.textContent =
+          "0";
+
+      }
+
+
+      if (revenueCount) {
+
+        revenueCount.textContent =
+          "₱0.00";
+
+      }
+
+
+      /* =============================================
+         USERS
+         
+         TEMPORARY
+         
+         User count requires a separate
+         admin-only database structure.
+      ============================================= */
+
+      const userCount =
+        document.getElementById(
+          "userCount"
+        );
+
+
+      if (userCount) {
+
+        userCount.textContent =
+          "0";
+
+      }
+
+
       console.log(
-        "📦 Product count:",
-        totalProducts
+        "📊 Dashboard stats updated successfully.",
+        {
+          products: totalProducts,
+          orders: 0,
+          users: 0,
+          revenue: 0
+        }
       );
 
 
     } catch (error) {
 
+      /*
+        This function does NOT perform
+        Firebase reads, so a Permission
+        Denied error should no longer
+        happen here.
+      */
+
       console.error(
-        "❌ Products stats error:",
+        "❌ Dashboard stats error:",
         error
       );
 
-
-      console.error(
-        "Firebase code:",
-        error?.code
-      );
-
-
-      console.error(
-        "Firebase message:",
-        error?.message
-      );
-
     }
-
-
-    /* ===============================================
-       ORDERS
-       
-       TEMPORARY ZERO
-       
-       We intentionally do NOT read /orders.
-    =============================================== */
-
-    const orderCount =
-      document.getElementById(
-        "orderCount"
-      );
-
-
-    if (orderCount) {
-
-      orderCount.textContent =
-        "0";
-
-    }
-
-
-    /* ===============================================
-       USERS
-       
-       TEMPORARY ZERO
-       
-       We intentionally do NOT read /users.
-    =============================================== */
-
-    const userCount =
-      document.getElementById(
-        "userCount"
-      );
-
-
-    if (userCount) {
-
-      userCount.textContent =
-        "0";
-
-    }
-
-
-    /* ===============================================
-       REVENUE
-       
-       TEMPORARY ZERO
-       
-       Will be connected to Admin Orders later.
-    =============================================== */
-
-    const revenueCount =
-      document.getElementById(
-        "revenueCount"
-      );
-
-
-    if (revenueCount) {
-
-      revenueCount.textContent =
-        "₱0.00";
-
-    }
-
-
-    console.log(
-      "✅ Dashboard stats updated successfully."
-    );
 
   }
 
@@ -2073,9 +1727,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ) {
 
     const number =
-      Number(
-        value || 0
-      );
+      Number(value || 0);
 
 
     return number.toLocaleString(
@@ -2125,7 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     INITIAL
+     INITIAL SECTION
   =================================================== */
 
   showSection(

@@ -2,6 +2,7 @@
    ZOLA'S CLOSET
    ADMIN DASHBOARD
    ADMIN.JS
+   FIREBASE PRODUCT MANAGEMENT
 ===================================================== */
 
 import {
@@ -96,6 +97,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
+     HELPER
+  =================================================== */
+
+  function getField(id) {
+    return document.getElementById(id);
+  }
+
+
+  function getFieldValue(id) {
+
+    const field = getField(id);
+
+    return field
+      ? field.value.trim()
+      : "";
+
+  }
+
+
+  function setFieldValue(id, value) {
+
+    const field = getField(id);
+
+    if (field) {
+      field.value =
+        value ?? "";
+    }
+
+  }
+
+
+  /* ===================================================
      SIDEBAR NAVIGATION
   =================================================== */
 
@@ -111,8 +144,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const sections =
       document.querySelectorAll(".admin-section");
 
+
     sections.forEach(section => {
+
       section.classList.remove("active");
+
     });
 
 
@@ -123,7 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     if (targetSection) {
+
       targetSection.classList.add("active");
+
     }
 
 
@@ -167,7 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     if (sidebar) {
-      sidebar.classList.remove("open");
+
+      sidebar.classList.remove(
+        "open"
+      );
+
     }
 
   }
@@ -175,28 +217,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   navItems.forEach(item => {
 
-    item.addEventListener("click", () => {
+    item.addEventListener(
+      "click",
+      () => {
 
-      const section =
-        item.dataset.section;
+        const section =
+          item.dataset.section;
 
-      showSection(section);
+        showSection(section);
 
-    });
+      }
+    );
 
   });
 
 
   quickActions.forEach(button => {
 
-    button.addEventListener("click", () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      const section =
-        button.dataset.section;
+        const section =
+          button.dataset.section;
 
-      showSection(section);
+        showSection(section);
 
-    });
+      }
+    );
 
   });
 
@@ -207,11 +255,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (menuBtn && sidebar) {
 
-    menuBtn.addEventListener("click", () => {
+    menuBtn.addEventListener(
+      "click",
+      () => {
 
-      sidebar.classList.toggle("open");
+        sidebar.classList.toggle(
+          "open"
+        );
 
-    });
+      }
+    );
 
   }
 
@@ -221,7 +274,12 @@ document.addEventListener("DOMContentLoaded", () => {
   =================================================== */
 
   const toast =
-    document.getElementById("adminToast");
+    document.getElementById(
+      "adminToast"
+    );
+
+
+  let toastTimer = null;
 
 
   function showToast(
@@ -229,18 +287,35 @@ document.addEventListener("DOMContentLoaded", () => {
     duration = 3000
   ) {
 
-    if (!toast) return;
-
-    toast.textContent = message;
-
-    toast.classList.add("show");
+    if (!toast)
+      return;
 
 
-    setTimeout(() => {
+    toast.textContent =
+      message;
 
-      toast.classList.remove("show");
 
-    }, duration);
+    toast.classList.add(
+      "show"
+    );
+
+
+    clearTimeout(
+      toastTimer
+    );
+
+
+    toastTimer =
+      setTimeout(
+        () => {
+
+          toast.classList.remove(
+            "show"
+          );
+
+        },
+        duration
+      );
 
   }
 
@@ -249,15 +324,28 @@ document.addEventListener("DOMContentLoaded", () => {
      PRODUCT MODAL
   =================================================== */
 
-  function openProductModal(product = null) {
+  function openProductModal(
+    product = null
+  ) {
 
-    if (!productModal) return;
+    if (!productModal)
+      return;
 
 
-    productFormMessage.textContent = "";
-    productFormMessage.className =
-      "form-message";
+    if (productFormMessage) {
 
+      productFormMessage.textContent =
+        "";
+
+      productFormMessage.className =
+        "form-message";
+
+    }
+
+
+    /* ================================================
+       EDIT
+    ================================================ */
 
     if (product) {
 
@@ -265,93 +353,146 @@ document.addEventListener("DOMContentLoaded", () => {
         product.id;
 
 
-      productModalTitle.textContent =
-        "Edit Product";
+      if (productModalTitle) {
+
+        productModalTitle.textContent =
+          "Edit Product";
+
+      }
 
 
-      document.getElementById(
-        "productId"
-      ).value = product.id;
+      setFieldValue(
+        "productId",
+        product.id
+      );
 
 
-      document.getElementById(
-        "productName"
-      ).value =
-        product.name || "";
+      setFieldValue(
+        "productName",
+        product.name
+      );
 
 
-      document.getElementById(
-        "productPrice"
-      ).value =
-        product.price ?? "";
+      setFieldValue(
+        "productPrice",
+        product.price
+      );
 
 
-      document.getElementById(
-        "productStock"
-      ).value =
-        product.stock ?? "";
+      setFieldValue(
+        "productStock",
+        product.stock
+      );
 
 
-      document.getElementById(
-        "productCategory"
-      ).value =
-        product.category || "";
+      setFieldValue(
+        "productCategory",
+        product.category
+      );
 
 
-      document.getElementById(
-        "productSize"
-      ).value =
-        product.size || "";
+      /*
+        New normalized structure:
+
+        sizes: ["2T", "3T", "4T"]
+
+        But we continue supporting
+        the old "size" string.
+      */
+
+      let sizeValue = "";
 
 
-      document.getElementById(
-        "productImage"
-      ).value =
-        product.image || "";
+      if (
+        Array.isArray(
+          product.sizes
+        )
+      ) {
+
+        sizeValue =
+          product.sizes.join(", ");
+
+      } else {
+
+        sizeValue =
+          product.size || "";
+
+      }
 
 
-      document.getElementById(
-        "productDescription"
-      ).value =
-        product.description || "";
+      setFieldValue(
+        "productSize",
+        sizeValue
+      );
 
 
-      document.getElementById(
-        "productBadge"
-      ).value =
-        product.badge || "";
+      setFieldValue(
+        "productImage",
+        product.image
+      );
 
 
-      document.getElementById(
-        "productDiscount"
-      ).value =
-        product.discount ?? 0;
+      setFieldValue(
+        "productDescription",
+        product.description
+      );
+
+
+      setFieldValue(
+        "productBadge",
+        product.badge
+      );
+
+
+      setFieldValue(
+        "productDiscount",
+        product.discount ?? 0
+      );
+
 
     } else {
 
-      editingProductId = null;
+      /* ================================================
+         ADD
+      ================================================ */
+
+      editingProductId =
+        null;
 
 
-      productModalTitle.textContent =
-        "Add Product";
+      if (productModalTitle) {
+
+        productModalTitle.textContent =
+          "Add Product";
+
+      }
 
 
-      productForm.reset();
+      if (productForm) {
+
+        productForm.reset();
+
+      }
 
 
-      document.getElementById(
-        "productDiscount"
-      ).value = 0;
+      setFieldValue(
+        "productDiscount",
+        0
+      );
 
 
-      document.getElementById(
-        "productId"
-      ).value = "";
+      setFieldValue(
+        "productId",
+        ""
+      );
 
     }
 
 
-    productModal.classList.add("active");
+    productModal.classList.add(
+      "active"
+    );
+
 
     document.body.style.overflow =
       "hidden";
@@ -361,13 +502,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeProductModalHandler() {
 
-    if (!productModal) return;
+    if (!productModal)
+      return;
 
-    productModal.classList.remove("active");
 
-    document.body.style.overflow = "";
+    productModal.classList.remove(
+      "active"
+    );
 
-    editingProductId = null;
+
+    document.body.style.overflow =
+      "";
+
+
+    editingProductId =
+      null;
 
   }
 
@@ -385,6 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(
           "➕ Add Product clicked"
         );
+
 
         openProductModal();
 
@@ -431,7 +581,8 @@ document.addEventListener("DOMContentLoaded", () => {
       event => {
 
         if (
-          event.target === productModal
+          event.target ===
+          productModal
         ) {
 
           closeProductModalHandler();
@@ -455,7 +606,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (
         event.key === "Escape" &&
         productModal &&
-        productModal.classList.contains("active")
+        productModal.classList.contains(
+          "active"
+        )
       ) {
 
         closeProductModalHandler();
@@ -488,25 +641,38 @@ document.addEventListener("DOMContentLoaded", () => {
           "⚠️ No authenticated user."
         );
 
-        /*
-          Huwag muna tayong mag-redirect
-          habang tine-test natin ang dashboard.
-        */
 
         if (adminName) {
+
           adminName.textContent =
             "Admin";
+
         }
+
 
         if (adminEmail) {
+
           adminEmail.textContent =
             "Not signed in";
+
         }
 
+
         if (settingsEmail) {
+
           settingsEmail.textContent =
             "Not signed in";
+
         }
+
+
+        if (profileAvatar) {
+
+          profileAvatar.textContent =
+            "A";
+
+        }
+
 
         return;
 
@@ -528,20 +694,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       if (adminName) {
+
         adminName.textContent =
           name;
+
       }
 
 
       if (adminEmail) {
+
         adminEmail.textContent =
           email;
+
       }
 
 
       if (settingsEmail) {
+
         settingsEmail.textContent =
           email;
+
       }
 
 
@@ -561,10 +733,180 @@ document.addEventListener("DOMContentLoaded", () => {
 
       await loadProducts();
 
+
       await updateDashboardStats();
 
     }
   );
+
+
+  /* ===================================================
+     NORMALIZE ADMIN PRODUCT
+  =================================================== */
+
+  function normalizeAdminProduct(
+    product,
+    id
+  ) {
+
+    if (!product)
+      return null;
+
+
+    const price =
+      Number(
+        product.price || 0
+      );
+
+
+    const discount =
+      Number(
+        product.discount || 0
+      );
+
+
+    /*
+      Convert old size string
+      into the new sizes array.
+    */
+
+    let sizes = [];
+
+
+    if (
+      Array.isArray(
+        product.sizes
+      )
+    ) {
+
+      sizes =
+        product.sizes;
+
+    } else if (
+      typeof product.size ===
+      "string" &&
+      product.size.trim()
+    ) {
+
+      sizes =
+        product.size
+          .split(",")
+          .map(
+            size =>
+              size.trim()
+          )
+          .filter(Boolean);
+
+    }
+
+
+    /*
+      Support old imageUrl
+      field as well.
+    */
+
+    const image =
+      String(
+        product.image ||
+        product.imageUrl ||
+        ""
+      );
+
+
+    return {
+
+      id,
+
+      firebaseId:
+        id,
+
+      name:
+        String(
+          product.name ||
+          "Unnamed Product"
+        ),
+
+      price,
+
+      stock:
+        Number(
+          product.stock ?? 0
+        ),
+
+      category:
+        String(
+          product.category ||
+          "all"
+        ).toLowerCase(),
+
+      sizes,
+
+      /*
+        Keep old size field for
+        backward compatibility.
+      */
+
+      size:
+        sizes.join(", "),
+
+      image,
+
+      description:
+        String(
+          product.description ||
+          ""
+        ),
+
+      badge:
+        String(
+          product.badge ||
+          ""
+        ),
+
+      discount,
+
+      /*
+        Fields expected by
+        customer script.js
+      */
+
+      oldPrice:
+        Number(
+          product.oldPrice ||
+          product.originalPrice ||
+          (
+            discount > 0
+              ? price /
+                (1 - discount / 100)
+              : price
+          )
+        ),
+
+      rating:
+        Number(
+          product.rating || 5
+        ),
+
+      featured:
+        product.featured === true,
+
+      color:
+        String(
+          product.color ||
+          ""
+        ),
+
+      createdAt:
+        product.createdAt ||
+        null,
+
+      updatedAt:
+        product.updatedAt ||
+        null
+
+    };
+
+  }
 
 
   /* ===================================================
@@ -573,7 +915,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadProducts() {
 
-    if (!productsTableBody) return;
+    if (!productsTableBody)
+      return;
 
 
     productsTableBody.innerHTML = `
@@ -591,11 +934,16 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
 
       const productsRef =
-        ref(database, "products");
+        ref(
+          database,
+          "products"
+        );
 
 
       const snapshot =
-        await get(productsRef);
+        await get(
+          productsRef
+        );
 
 
       products = [];
@@ -607,19 +955,35 @@ document.addEventListener("DOMContentLoaded", () => {
           snapshot.val();
 
 
-        Object.entries(data).forEach(
-          ([id, product]) => {
+        if (
+          data &&
+          typeof data ===
+            "object"
+        ) {
 
-            products.push({
+          Object.entries(data)
+            .forEach(
+              ([id, product]) => {
 
-              id,
+                const normalized =
+                  normalizeAdminProduct(
+                    product,
+                    id
+                  );
 
-              ...product
 
-            });
+                if (normalized) {
 
-          }
-        );
+                  products.push(
+                    normalized
+                  );
+
+                }
+
+              }
+            );
+
+        }
 
       }
 
@@ -662,7 +1026,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderProducts() {
 
-    if (!productsTableBody) return;
+    if (!productsTableBody)
+      return;
 
 
     const search =
@@ -680,30 +1045,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const filteredProducts =
-      products.filter(product => {
+      products.filter(
+        product => {
 
-        const matchesSearch =
-          !search ||
-          String(product.name || "")
-            .toLowerCase()
-            .includes(search);
-
-
-        const matchesCategory =
-          category === "all" ||
-          product.category === category;
+          const matchesSearch =
+            !search ||
+            String(
+              product.name || ""
+            )
+              .toLowerCase()
+              .includes(search);
 
 
-        return (
-          matchesSearch &&
-          matchesCategory
-        );
+          const matchesCategory =
+            category === "all" ||
+            product.category ===
+              category;
 
-      });
+
+          return (
+            matchesSearch &&
+            matchesCategory
+          );
+
+        }
+      );
 
 
     if (
-      filteredProducts.length === 0
+      !filteredProducts.length
     ) {
 
       productsTableBody.innerHTML = `
@@ -724,141 +1094,185 @@ document.addEventListener("DOMContentLoaded", () => {
 
     productsTableBody.innerHTML =
       filteredProducts
-        .map(product => {
+        .map(
+          product => {
 
-          const stock =
-            Number(product.stock || 0);
-
-
-          let stockClass =
-            "stock-good";
-
-
-          if (stock === 0) {
-
-            stockClass =
-              "stock-out";
-
-          } else if (stock <= 5) {
-
-            stockClass =
-              "stock-low";
-
-          }
+            const stock =
+              Number(
+                product.stock || 0
+              );
 
 
-          return `
+            let stockClass =
+              "stock-good";
 
-            <tr>
 
-              <td>
+            if (
+              stock === 0
+            ) {
 
-                <div class="product-table-info">
+              stockClass =
+                "stock-out";
 
-                  <img
-                    src="${escapeHtml(
-                      product.image ||
-                      ""
-                    )}"
-                    class="product-table-image"
-                    alt="${escapeHtml(
-                      product.name ||
-                      "Product"
-                    )}"
-                    onerror="
-                      this.style.opacity='0.4';
-                    "
+            } else if (
+              stock <= 5
+            ) {
+
+              stockClass =
+                "stock-low";
+
+            }
+
+
+            const image =
+              product.image ||
+              "";
+
+
+            return `
+
+              <tr>
+
+                <td>
+
+                  <div
+                    class="product-table-info"
                   >
 
-                  <div>
+                    ${
+                      image
+                        ? `
+                          <img
+                            src="${escapeHtml(image)}"
+                            class="product-table-image"
+                            alt="${escapeHtml(
+                              product.name ||
+                              "Product"
+                            )}"
+                            onerror="
+                              this.style.opacity='0.4';
+                            "
+                          >
+                        `
+                        : `
+                          <div
+                            class="product-table-image"
+                            style="
+                              display:grid;
+                              place-items:center;
+                              font-size:20px;
+                            "
+                          >
+                            🎀
+                          </div>
+                        `
+                    }
 
-                    <div class="product-table-name">
-                      ${escapeHtml(
-                        product.name ||
-                        "Unnamed Product"
-                      )}
+
+                    <div>
+
+                      <div
+                        class="product-table-name"
+                      >
+                        ${escapeHtml(
+                          product.name ||
+                          "Unnamed Product"
+                        )}
+                      </div>
+
                     </div>
 
                   </div>
 
-                </div>
-
-              </td>
+                </td>
 
 
-              <td>
+                <td>
 
-                <span
-                  class="product-table-category"
-                >
-                  ${escapeHtml(
-                    product.category ||
-                    "-"
+                  <span
+                    class="product-table-category"
+                  >
+                    ${escapeHtml(
+                      product.category ||
+                      "-"
+                    )}
+                  </span>
+
+                </td>
+
+
+                <td>
+                  ₱${formatPrice(
+                    product.price
                   )}
-                </span>
-
-              </td>
+                </td>
 
 
-              <td>
-                ₱${formatPrice(
-                  product.price
-                )}
-              </td>
+                <td>
 
-
-              <td>
-
-                <span
-                  class="${stockClass}"
-                >
-                  ${stock}
-                </span>
-
-              </td>
-
-
-              <td>
-
-                <span class="product-status">
-                  Active
-                </span>
-
-              </td>
-
-
-              <td>
-
-                <div class="table-actions">
-
-                  <button
-                    type="button"
-                    class="table-action"
-                    data-edit-product="${product.id}"
-                    title="Edit"
+                  <span
+                    class="${stockClass}"
                   >
-                    ✏️
-                  </button>
+                    ${stock}
+                  </span>
+
+                </td>
 
 
-                  <button
-                    type="button"
-                    class="table-action delete"
-                    data-delete-product="${product.id}"
-                    title="Delete"
+                <td>
+
+                  <span
+                    class="product-status"
                   >
-                    🗑️
-                  </button>
+                    ${
+                      product.featured
+                        ? "Featured"
+                        : "Active"
+                    }
+                  </span>
 
-                </div>
+                </td>
 
-              </td>
 
-            </tr>
+                <td>
 
-          `;
+                  <div
+                    class="table-actions"
+                  >
 
-        })
+                    <button
+                      type="button"
+                      class="table-action"
+                      data-edit-product="${escapeHtml(
+                        product.id
+                      )}"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="table-action delete"
+                      data-delete-product="${escapeHtml(
+                        product.id
+                      )}"
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            `;
+
+          }
+        )
         .join("");
 
 
@@ -885,102 +1299,119 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
-    editButtons.forEach(button => {
+    editButtons.forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          const id =
-            button.dataset.editProduct;
-
-
-          const product =
-            products.find(
-              item => item.id === id
-            );
+            const id =
+              button.dataset
+                .editProduct;
 
 
-          if (product) {
-
-            openProductModal(
-              product
-            );
-
-          }
-
-        }
-      );
-
-    });
+            const product =
+              products.find(
+                item =>
+                  String(
+                    item.id
+                  ) ===
+                  String(id)
+              );
 
 
-    deleteButtons.forEach(button => {
+            if (product) {
 
-      button.addEventListener(
-        "click",
-        async () => {
+              openProductModal(
+                product
+              );
 
-          const id =
-            button.dataset.deleteProduct;
-
-
-          const product =
-            products.find(
-              item => item.id === id
-            );
-
-
-          if (!product) return;
-
-
-          const confirmed =
-            confirm(
-              `Delete "${product.name}"?`
-            );
-
-
-          if (!confirmed) return;
-
-
-          try {
-
-            await remove(
-              ref(
-                database,
-                `products/${id}`
-              )
-            );
-
-
-            showToast(
-              "Product deleted successfully."
-            );
-
-
-            await loadProducts();
-
-            await updateDashboardStats();
-
-
-          } catch (error) {
-
-            console.error(
-              "❌ Delete error:",
-              error
-            );
-
-
-            showToast(
-              "Failed to delete product."
-            );
+            }
 
           }
+        );
 
-        }
-      );
+      }
+    );
 
-    });
+
+    deleteButtons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            const id =
+              button.dataset
+                .deleteProduct;
+
+
+            const product =
+              products.find(
+                item =>
+                  String(
+                    item.id
+                  ) ===
+                  String(id)
+              );
+
+
+            if (!product)
+              return;
+
+
+            const confirmed =
+              confirm(
+                `Delete "${product.name}"?`
+              );
+
+
+            if (!confirmed)
+              return;
+
+
+            try {
+
+              await remove(
+                ref(
+                  database,
+                  `products/${id}`
+                )
+              );
+
+
+              showToast(
+                "Product deleted successfully."
+              );
+
+
+              await loadProducts();
+
+
+              await updateDashboardStats();
+
+
+            } catch (error) {
+
+              console.error(
+                "❌ Delete error:",
+                error
+              );
+
+
+              showToast(
+                "Failed to delete product."
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
 
   }
 
@@ -998,72 +1429,84 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
 
 
-        productFormMessage.textContent =
-          "Saving product...";
+        if (productFormMessage) {
 
-        productFormMessage.className =
-          "form-message";
+          productFormMessage.textContent =
+            "Saving product...";
 
+          productFormMessage.className =
+            "form-message";
+
+        }
+
+
+        /* =============================================
+           READ FORM
+        ============================================= */
 
         const name =
-          document.getElementById(
+          getFieldValue(
             "productName"
-          ).value.trim();
+          );
 
 
         const price =
           Number(
-            document.getElementById(
+            getField(
               "productPrice"
-            ).value
+            )?.value
           );
 
 
         const stock =
           Number(
-            document.getElementById(
+            getField(
               "productStock"
-            ).value
+            )?.value
           );
 
 
         const category =
-          document.getElementById(
+          getFieldValue(
             "productCategory"
-          ).value;
+          );
 
 
-        const size =
-          document.getElementById(
+        const sizeInput =
+          getFieldValue(
             "productSize"
-          ).value.trim();
+          );
 
 
         const image =
-          document.getElementById(
+          getFieldValue(
             "productImage"
-          ).value.trim();
+          );
 
 
         const description =
-          document.getElementById(
+          getFieldValue(
             "productDescription"
-          ).value.trim();
+          );
 
 
         const badge =
-          document.getElementById(
+          getFieldValue(
             "productBadge"
-          ).value.trim();
+          );
 
 
         const discount =
           Number(
-            document.getElementById(
+            getField(
               "productDiscount"
-            ).value || 0
+            )?.value || 0
           );
 
+
+        /* =============================================
+           VALIDATION
+        ============================================= */
 
         if (!name) {
 
@@ -1126,31 +1569,166 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        if (
+          !Number.isFinite(discount) ||
+          discount < 0 ||
+          discount > 100
+        ) {
+
+          showFormError(
+            "Discount must be between 0 and 100."
+          );
+
+          return;
+
+        }
+
+
+        /* =============================================
+           NORMALIZE SIZES
+        ============================================= */
+
+        const sizes =
+          sizeInput
+            ? sizeInput
+                .split(",")
+                .map(
+                  size =>
+                    size.trim()
+                )
+                .filter(Boolean)
+            : [];
+
+
+        /* =============================================
+           CALCULATE OLD PRICE
+        ============================================= */
+
+        let oldPrice =
+          price;
+
+
+        if (
+          discount > 0 &&
+          discount < 100
+        ) {
+
+          oldPrice =
+            Math.round(
+              (
+                price /
+                (
+                  1 -
+                  discount / 100
+                )
+              ) *
+              100
+            ) / 100;
+
+        }
+
+
+        /* =============================================
+           PRESERVE EXISTING PRODUCT DATA
+        ============================================= */
+
+        let existingProduct =
+          null;
+
+
+        if (editingProductId) {
+
+          existingProduct =
+            products.find(
+              product =>
+                String(
+                  product.id
+                ) ===
+                String(
+                  editingProductId
+                )
+            ) || null;
+
+        }
+
+
+        /* =============================================
+           PRODUCT DATA
+        ============================================= */
+
         const productData = {
+
+          /*
+            Core
+          */
 
           name,
 
           price,
 
+          oldPrice,
+
           stock,
 
           category,
-
-          size,
 
           image,
 
           description,
 
+
+          /*
+            Sizes
+          */
+
+          sizes,
+
+          /*
+            Backward compatibility
+          */
+
+          size:
+            sizes.join(", "),
+
+
+          /*
+            Store display
+          */
+
           badge,
 
           discount,
+
+
+          /*
+            Existing optional data
+          */
+
+          rating:
+            existingProduct?.rating ||
+            5,
+
+          featured:
+            existingProduct?.featured === true,
+
+          color:
+            existingProduct?.color ||
+            "",
+
+
+          /*
+            Timestamps
+          */
 
           updatedAt:
             Date.now()
 
         };
 
+
+        /* =============================================
+           SAVE
+        ============================================= */
 
         try {
 
@@ -1166,7 +1744,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             showToast(
-              "Product updated successfully."
+              "Product updated successfully. ✨"
             );
 
 
@@ -1180,44 +1758,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             const newProductRef =
-              push(productsRef);
+              push(
+                productsRef
+              );
 
 
             await set(
               newProductRef,
               {
+
                 ...productData,
 
                 createdAt:
                   Date.now()
+
               }
             );
 
 
             showToast(
-              "Product added successfully."
+              "Product added successfully. 🎀"
             );
 
           }
 
 
-          productFormMessage.textContent =
-            "Product saved successfully.";
+          if (productFormMessage) {
 
-          productFormMessage.className =
-            "form-message success";
+            productFormMessage.textContent =
+              "Product saved successfully.";
+
+            productFormMessage.className =
+              "form-message success";
+
+          }
 
 
           await loadProducts();
 
+
           await updateDashboardStats();
 
 
-          setTimeout(() => {
+          setTimeout(
+            () => {
 
-            closeProductModalHandler();
+              closeProductModalHandler();
 
-          }, 500);
+            },
+            500
+          );
 
 
         } catch (error) {
@@ -1228,8 +1818,22 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
+          console.error(
+            "Firebase error code:",
+            error?.code
+          );
+
+
+          console.error(
+            "Firebase error message:",
+            error?.message
+          );
+
+
           showFormError(
-            "Failed to save product. Check Firebase Database Rules."
+            getDatabaseErrorMessage(
+              error
+            )
           );
 
         }
@@ -1272,7 +1876,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      /* PRODUCTS */
+      /* =============================================
+         PRODUCTS
+      ============================================= */
 
       const productsSnapshot =
         await get(
@@ -1283,15 +1889,30 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-      let productCountValue = 0;
+      let productCountValue =
+        0;
 
 
-      if (productsSnapshot.exists()) {
+      if (
+        productsSnapshot.exists()
+      ) {
 
-        productCountValue =
-          Object.keys(
-            productsSnapshot.val()
-          ).length;
+        const data =
+          productsSnapshot.val();
+
+
+        if (
+          data &&
+          typeof data ===
+            "object"
+        ) {
+
+          productCountValue =
+            Object.keys(
+              data
+            ).length;
+
+        }
 
       }
 
@@ -1310,7 +1931,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      /* ORDERS */
+      /* =============================================
+         ORDERS
+      ============================================= */
 
       const ordersSnapshot =
         await get(
@@ -1321,35 +1944,72 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-      let orderCountValue = 0;
+      let orderCountValue =
+        0;
 
-      let revenue = 0;
+
+      let revenue =
+        0;
 
 
-      if (ordersSnapshot.exists()) {
+      if (
+        ordersSnapshot.exists()
+      ) {
 
         const orders =
           ordersSnapshot.val();
 
 
-        orderCountValue =
-          Object.keys(
+        /*
+          Orders are stored:
+
+          orders/
+            userId/
+              orderNumber/
+
+        */
+
+        if (
+          orders &&
+          typeof orders ===
+            "object"
+        ) {
+
+          Object.values(
             orders
-          ).length;
+          ).forEach(
+            userOrders => {
+
+              if (
+                !userOrders ||
+                typeof userOrders !==
+                  "object"
+              )
+                return;
 
 
-        Object.values(
-          orders
-        ).forEach(order => {
+              Object.values(
+                userOrders
+              ).forEach(
+                order => {
 
-          revenue +=
-            Number(
-              order.total ||
-              order.amount ||
-              0
-            );
+                  orderCountValue++;
 
-        });
+
+                  revenue +=
+                    Number(
+                      order?.total ||
+                      order?.amount ||
+                      0
+                    );
+
+                }
+              );
+
+            }
+          );
+
+        }
 
       }
 
@@ -1377,12 +2037,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (revenueCount) {
 
         revenueCount.textContent =
-          `₱${formatPrice(revenue)}`;
+          `₱${formatPrice(
+            revenue
+          )}`;
 
       }
 
 
-      /* USERS */
+      /* =============================================
+         USERS
+      ============================================= */
 
       const usersSnapshot =
         await get(
@@ -1393,15 +2057,30 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-      let userCountValue = 0;
+      let userCountValue =
+        0;
 
 
-      if (usersSnapshot.exists()) {
+      if (
+        usersSnapshot.exists()
+      ) {
 
-        userCountValue =
-          Object.keys(
-            usersSnapshot.val()
-          ).length;
+        const users =
+          usersSnapshot.val();
+
+
+        if (
+          users &&
+          typeof users ===
+            "object"
+        ) {
+
+          userCountValue =
+            Object.keys(
+              users
+            ).length;
+
+        }
 
       }
 
@@ -1448,12 +2127,15 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-        if (!confirmed) return;
+        if (!confirmed)
+          return;
 
 
         try {
 
-          await signOut(auth);
+          await signOut(
+            auth
+          );
 
 
           showToast(
@@ -1461,17 +2143,15 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-          /*
-            Temporary behavior:
-            balik muna sa store.
-          */
+          setTimeout(
+            () => {
 
-          setTimeout(() => {
+              window.location.href =
+                "../index.html";
 
-            window.location.href =
-              "../index.html";
-
-          }, 700);
+            },
+            700
+          );
 
 
         } catch (error) {
@@ -1480,6 +2160,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "❌ Logout error:",
             error
           );
+
 
           showToast(
             "Failed to sign out."
@@ -1497,12 +2178,17 @@ document.addEventListener("DOMContentLoaded", () => {
      FORM ERROR
   =================================================== */
 
-  function showFormError(message) {
+  function showFormError(
+    message
+  ) {
 
-    if (!productFormMessage) return;
+    if (!productFormMessage)
+      return;
+
 
     productFormMessage.textContent =
       message;
+
 
     productFormMessage.className =
       "form-message error";
@@ -1511,13 +2197,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
+     DATABASE ERROR
+  =================================================== */
+
+  function getDatabaseErrorMessage(
+    error
+  ) {
+
+    if (!error)
+      return "Failed to save product.";
+
+
+    switch (
+      error.code
+    ) {
+
+      case "PERMISSION_DENIED":
+
+        return (
+          "Permission denied. Check your Firebase Database Rules."
+        );
+
+
+      case "PERMISSION_DENIED: Permission denied":
+
+        return (
+          "Permission denied. Check your Firebase Database Rules."
+        );
+
+
+      case "NETWORK_ERROR":
+
+        return (
+          "Network error. Please check your internet connection."
+        );
+
+
+      default:
+
+        return (
+          error.message ||
+          "Failed to save product."
+        );
+
+    }
+
+  }
+
+
+  /* ===================================================
      PRICE FORMAT
   =================================================== */
 
-  function formatPrice(value) {
+  function formatPrice(
+    value
+  ) {
 
     const number =
-      Number(value || 0);
+      Number(
+        value || 0
+      );
 
 
     return number.toLocaleString(
@@ -1535,14 +2274,38 @@ document.addEventListener("DOMContentLoaded", () => {
      HTML ESCAPE
   =================================================== */
 
-  function escapeHtml(value) {
+  function escapeHtml(
+    value
+  ) {
 
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+    return String(
+      value ?? ""
+    )
+
+      .replaceAll(
+        "&",
+        "&amp;"
+      )
+
+      .replaceAll(
+        "<",
+        "&lt;"
+      )
+
+      .replaceAll(
+        ">",
+        "&gt;"
+      )
+
+      .replaceAll(
+        '"',
+        "&quot;"
+      )
+
+      .replaceAll(
+        "'",
+        "&#039;"
+      );
 
   }
 
@@ -1551,7 +2314,9 @@ document.addEventListener("DOMContentLoaded", () => {
      INITIAL
   =================================================== */
 
-  showSection("dashboard");
+  showSection(
+    "dashboard"
+  );
 
 
   console.log(

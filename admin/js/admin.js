@@ -203,26 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showSection(section);
 
-      /*
-        If Quick Action says Add Product,
-        automatically open the product modal.
-      */
-
-      if (
-        section === "products" &&
-        button.querySelector("strong")?.textContent
-          ?.toLowerCase()
-          .includes("add product")
-      ) {
-
-        setTimeout(() => {
-
-          openProductModal();
-
-        }, 100);
-
-      }
-
     });
 
   });
@@ -286,8 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (productFormMessage) {
 
-      productFormMessage.textContent =
-        "";
+      productFormMessage.textContent = "";
 
       productFormMessage.className =
         "form-message";
@@ -309,120 +288,69 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      const productId =
-        document.getElementById("productId");
-
-      const productName =
-        document.getElementById("productName");
-
-      const productPrice =
-        document.getElementById("productPrice");
-
-      const productStock =
-        document.getElementById("productStock");
-
-      const productCategory =
-        document.getElementById("productCategory");
-
-      const productSize =
-        document.getElementById("productSize");
-
-      const productImage =
-        document.getElementById("productImage");
-
-      const productDescription =
-        document.getElementById("productDescription");
-
-      const productBadge =
-        document.getElementById("productBadge");
-
-      const productDiscount =
-        document.getElementById("productDiscount");
+      document.getElementById(
+        "productId"
+      ).value =
+        product.id;
 
 
-      if (productId) {
-
-        productId.value =
-          product.id || "";
-
-      }
+      document.getElementById(
+        "productName"
+      ).value =
+        product.name || "";
 
 
-      if (productName) {
-
-        productName.value =
-          product.name || "";
-
-      }
+      document.getElementById(
+        "productPrice"
+      ).value =
+        product.price ?? "";
 
 
-      if (productPrice) {
-
-        productPrice.value =
-          product.price ?? "";
-
-      }
+      document.getElementById(
+        "productStock"
+      ).value =
+        product.stock ?? "";
 
 
-      if (productStock) {
-
-        productStock.value =
-          product.stock ?? 0;
-
-      }
+      document.getElementById(
+        "productCategory"
+      ).value =
+        product.category || "";
 
 
-      if (productCategory) {
-
-        productCategory.value =
-          product.category || "";
-
-      }
+      document.getElementById(
+        "productSize"
+      ).value =
+        product.size || "";
 
 
-      if (productSize) {
-
-        productSize.value =
-          product.size || "";
-
-      }
+      document.getElementById(
+        "productImage"
+      ).value =
+        product.image || "";
 
 
-      if (productImage) {
-
-        productImage.value =
-          product.image || "";
-
-      }
+      document.getElementById(
+        "productDescription"
+      ).value =
+        product.description || "";
 
 
-      if (productDescription) {
-
-        productDescription.value =
-          product.description || "";
-
-      }
+      document.getElementById(
+        "productBadge"
+      ).value =
+        product.badge || "";
 
 
-      if (productBadge) {
+      document.getElementById(
+        "productDiscount"
+      ).value =
+        product.discount ?? 0;
 
-        productBadge.value =
-          product.badge || "";
-
-      }
-
-
-      if (productDiscount) {
-
-        productDiscount.value =
-          product.discount ?? 0;
-
-      }
 
     } else {
 
-      editingProductId =
-        null;
+      editingProductId = null;
 
 
       if (productModalTitle) {
@@ -433,39 +361,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      if (productForm) {
-
-        productForm.reset();
-
-      }
+      productForm.reset();
 
 
-      const productDiscount =
-        document.getElementById(
-          "productDiscount"
-        );
+      document.getElementById(
+        "productDiscount"
+      ).value =
+        0;
 
 
-      const productId =
-        document.getElementById(
-          "productId"
-        );
-
-
-      if (productDiscount) {
-
-        productDiscount.value =
-          0;
-
-      }
-
-
-      if (productId) {
-
-        productId.value =
-          "";
-
-      }
+      document.getElementById(
+        "productId"
+      ).value =
+        "";
 
     }
 
@@ -483,10 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!productModal) return;
 
 
-    productModal.classList.remove(
-      "active"
-    );
-
+    productModal.classList.remove("active");
 
     document.body.style.overflow =
       "";
@@ -508,20 +413,9 @@ document.addEventListener("DOMContentLoaded", () => {
       "click",
       () => {
 
-        console.log(
-          "➕ Add Product clicked"
-        );
-
-
         openProductModal();
 
       }
-    );
-
-  } else {
-
-    console.error(
-      "❌ addProductBtn not found"
     );
 
   }
@@ -558,8 +452,7 @@ document.addEventListener("DOMContentLoaded", () => {
       event => {
 
         if (
-          event.target ===
-          productModal
+          event.target === productModal
         ) {
 
           closeProductModalHandler();
@@ -583,9 +476,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (
         event.key === "Escape" &&
         productModal &&
-        productModal.classList.contains(
-          "active"
-        )
+        productModal.classList.contains("active")
       ) {
 
         closeProductModalHandler();
@@ -613,11 +504,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       if (!user) {
-
-        console.warn(
-          "⚠️ No authenticated user."
-        );
-
 
         if (adminName) {
 
@@ -719,10 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     productsTableBody.innerHTML = `
       <tr>
-        <td
-          colspan="6"
-          class="empty-table"
-        >
+        <td colspan="6" class="empty-table">
           Loading products...
         </td>
       </tr>
@@ -739,9 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       const snapshot =
-        await get(
-          productsRef
-        );
+        await get(productsRef);
 
 
       products = [];
@@ -788,10 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       productsTableBody.innerHTML = `
         <tr>
-          <td
-            colspan="6"
-            class="empty-table"
-          >
+          <td colspan="6" class="empty-table">
             Failed to load products.
           </td>
         </tr>
@@ -828,24 +706,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const filteredProducts =
       products.filter(product => {
 
-        const productName =
-          String(
-            product.name || ""
-          )
-            .toLowerCase();
-
-
-        const productDescription =
-          String(
-            product.description || ""
-          )
-            .toLowerCase();
-
-
         const matchesSearch =
           !search ||
-          productName.includes(search) ||
-          productDescription.includes(search);
+          String(product.name || "")
+            .toLowerCase()
+            .includes(search);
 
 
         const matchesCategory =
@@ -867,10 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       productsTableBody.innerHTML = `
         <tr>
-          <td
-            colspan="6"
-            class="empty-table"
-          >
+          <td colspan="6" class="empty-table">
             No products found.
           </td>
         </tr>
@@ -908,16 +770,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
 
-          const image =
-            product.image ||
-            "";
-
-
-          const productName =
-            product.name ||
-            "Unnamed Product";
-
-
           return `
 
             <tr>
@@ -927,9 +779,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="product-table-info">
 
                   <img
-                    src="${escapeHtml(image)}"
+                    src="${escapeHtml(
+                      product.image || ""
+                    )}"
                     class="product-table-image"
-                    alt="${escapeHtml(productName)}"
+                    alt="${escapeHtml(
+                      product.name ||
+                      "Product"
+                    )}"
                     onerror="
                       this.style.opacity='0.4';
                     "
@@ -938,11 +795,10 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div>
 
                     <div class="product-table-name">
-
                       ${escapeHtml(
-                        productName
+                        product.name ||
+                        "Unnamed Product"
                       )}
-
                     </div>
 
                   </div>
@@ -954,26 +810,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
               <td>
 
-                <span
-                  class="product-table-category"
-                >
-
+                <span class="product-table-category">
                   ${escapeHtml(
                     product.category ||
                     "-"
                   )}
-
                 </span>
 
               </td>
 
 
               <td>
-
                 ₱${formatPrice(
                   product.price
                 )}
-
               </td>
 
 
@@ -982,9 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span
                   class="${stockClass}"
                 >
-
                   ${stock}
-
                 </span>
 
               </td>
@@ -993,9 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <td>
 
                 <span class="product-status">
-
                   Active
-
                 </span>
 
               </td>
@@ -1008,7 +854,9 @@ document.addEventListener("DOMContentLoaded", () => {
                   <button
                     type="button"
                     class="table-action"
-                    data-edit-product="${escapeHtml(product.id)}"
+                    data-edit-product="${escapeHtml(
+                      product.id
+                    )}"
                     title="Edit"
                   >
                     ✏️
@@ -1018,7 +866,9 @@ document.addEventListener("DOMContentLoaded", () => {
                   <button
                     type="button"
                     class="table-action delete"
-                    data-delete-product="${escapeHtml(product.id)}"
+                    data-delete-product="${escapeHtml(
+                      product.id
+                    )}"
                     title="Delete"
                   >
                     🗑️
@@ -1147,6 +997,12 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+            console.error(
+              "Firebase error code:",
+              error.code
+            );
+
+
             showToast(
               "Failed to delete product."
             );
@@ -1186,121 +1042,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           FORM ELEMENTS
-        ============================================= */
-
-        const productName =
-          document.getElementById(
-            "productName"
-          );
-
-
-        const productPrice =
-          document.getElementById(
-            "productPrice"
-          );
-
-
-        const productStock =
-          document.getElementById(
-            "productStock"
-          );
-
-
-        const productCategory =
-          document.getElementById(
-            "productCategory"
-          );
-
-
-        const productSize =
-          document.getElementById(
-            "productSize"
-          );
-
-
-        const productImage =
-          document.getElementById(
-            "productImage"
-          );
-
-
-        const productDescription =
-          document.getElementById(
-            "productDescription"
-          );
-
-
-        const productBadge =
-          document.getElementById(
-            "productBadge"
-          );
-
-
-        const productDiscount =
-          document.getElementById(
-            "productDiscount"
-          );
-
-
-        /* =============================================
-           VALUES
+           GET FORM VALUES
         ============================================= */
 
         const name =
-          productName
-            ? productName.value.trim()
-            : "";
+          document
+            .getElementById("productName")
+            .value
+            .trim();
 
 
         const price =
-          productPrice
-            ? Number(productPrice.value)
-            : NaN;
+          Number(
+            document
+              .getElementById("productPrice")
+              .value
+          );
 
 
         const stock =
-          productStock
-            ? Number(productStock.value)
-            : NaN;
+          Number(
+            document
+              .getElementById("productStock")
+              .value
+          );
 
 
         const category =
-          productCategory
-            ? productCategory.value
-            : "";
+          document
+            .getElementById("productCategory")
+            .value;
 
 
         const size =
-          productSize
-            ? productSize.value.trim()
-            : "";
+          document
+            .getElementById("productSize")
+            .value
+            .trim();
 
 
         const image =
-          productImage
-            ? productImage.value.trim()
-            : "";
+          document
+            .getElementById("productImage")
+            .value
+            .trim();
 
 
         const description =
-          productDescription
-            ? productDescription.value.trim()
-            : "";
+          document
+            .getElementById("productDescription")
+            .value
+            .trim();
 
 
         const badge =
-          productBadge
-            ? productBadge.value.trim()
-            : "";
+          document
+            .getElementById("productBadge")
+            .value
+            .trim();
 
 
         const discount =
-          productDiscount
-            ? Number(
-                productDiscount.value || 0
-              )
-            : 0;
+          Number(
+            document
+              .getElementById("productDiscount")
+              .value || 0
+          );
 
 
         /* =============================================
@@ -1311,17 +1118,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
           showFormError(
             "Product name is required."
-          );
-
-          return;
-
-        }
-
-
-        if (name.length > 150) {
-
-          showFormError(
-            "Product name must be 150 characters or less."
           );
 
           return;
@@ -1368,46 +1164,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        const validCategories = [
-          "girls",
-          "boys",
-          "baby",
-          "sets"
-        ];
-
-
-        if (
-          !validCategories.includes(
-            category
-          )
-        ) {
-
-          showFormError(
-            "Invalid product category."
-          );
-
-          return;
-
-        }
-
-
         if (!image) {
 
           showFormError(
             "Product image URL is required."
-          );
-
-          return;
-
-        }
-
-
-        if (
-          description.length > 1000
-        ) {
-
-          showFormError(
-            "Description must be 1000 characters or less."
           );
 
           return;
@@ -1431,102 +1191,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           FIREBASE PRODUCT DATA
+           OLD PRICE
            
-           IMPORTANT:
-           Your Firebase Rules require:
-           name
-           category
-           price
-           oldPrice
-           discount
-           rating
-           image
-           description
-           featured
-           stock
+           Firebase Rules REQUIRE oldPrice.
            
-           The oldPrice, rating and featured values
-           are automatically supplied here because
-           they are not currently fields in index.html.
+           If discount exists:
+           oldPrice = price / (1 - discount/100)
+
+           If no discount:
+           oldPrice = price
         ============================================= */
 
-        const existingProduct =
-          editingProductId
-            ? products.find(
-                product =>
-                  product.id ===
-                  editingProductId
-              )
-            : null;
-
-
-        /*
-          Preserve oldPrice when editing.
-
-          If the existing product has no oldPrice,
-          calculate it from the current price and
-          discount if possible.
-        */
-
         let oldPrice =
-          Number(
-            existingProduct?.oldPrice || 0
-          );
+          price;
 
 
-        if (
-          oldPrice <= 0 &&
-          discount > 0
-        ) {
+        if (discount > 0) {
 
-          oldPrice =
+          const calculatedOldPrice =
             price /
             (1 - discount / 100);
 
+
+          if (
+            Number.isFinite(
+              calculatedOldPrice
+            )
+          ) {
+
+            oldPrice =
+              Number(
+                calculatedOldPrice.toFixed(2)
+              );
+
+          }
+
         }
 
 
-        /*
-          If there is no discount,
-          oldPrice defaults to current price.
-        */
-
-        if (
-          oldPrice <= 0
-        ) {
-
-          oldPrice =
-            price;
-
-        }
-
-
-        /*
-          Preserve rating when editing.
-          New products start at 0.
-        */
-
-        const rating =
-          Number(
-            existingProduct?.rating || 0
-          );
-
-
-        /*
-          Preserve featured state when editing.
-          New products default to false.
-        */
-
-        const featured =
-          existingProduct?.featured === true
-            ? true
-            : false;
-
+        /* =============================================
+           FIREBASE PRODUCT DATA
+           
+           IMPORTANT:
+           These fields match your Firebase Rules.
+        ============================================= */
 
         const productData = {
-
-          /* REQUIRED BY FIREBASE RULES */
 
           name,
 
@@ -1538,25 +1248,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
           discount,
 
-          rating,
+          rating: 0,
 
           image,
 
           description,
 
-          featured,
+          featured: false,
 
           stock,
-
-
-          /* ADDITIONAL STORE DATA */
 
           size,
 
           badge,
-
-
-          /* TIMESTAMP */
 
           updatedAt:
             Date.now()
@@ -1577,10 +1281,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
 
           if (editingProductId) {
-
-            /*
-              EDIT EXISTING PRODUCT
-            */
 
             await update(
               ref(
@@ -1603,10 +1303,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           } else {
-
-            /*
-              CREATE NEW PRODUCT
-            */
 
             const productsRef =
               ref(
@@ -1647,9 +1343,9 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
 
-          /* ===========================================
+          /* =========================================
              SUCCESS MESSAGE
-          =========================================== */
+          ========================================= */
 
           if (productFormMessage) {
 
@@ -1662,24 +1358,20 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
 
-          /* ===========================================
-             REFRESH DATA
-          =========================================== */
+          /* =========================================
+             REFRESH
+          ========================================= */
 
           await loadProducts();
 
           await updateDashboardStats();
 
 
-          /* ===========================================
-             CLOSE MODAL
-          =========================================== */
-
           setTimeout(() => {
 
             closeProductModalHandler();
 
-          }, 700);
+          }, 500);
 
 
         } catch (error) {
@@ -1691,40 +1383,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           console.error(
-            "Firebase error code:",
-            error?.code
+            "❌ Firebase error code:",
+            error.code
           );
 
 
           console.error(
-            "Firebase error message:",
-            error?.message
+            "❌ Firebase error message:",
+            error.message
           );
 
 
-          /*
-            Show a more useful error message.
-          */
+          /* =========================================
+             DETAILED ERROR
+          ========================================= */
+
+          let errorMessage =
+            "Failed to save product.";
+
 
           if (
-            error?.code ===
+            error.code ===
             "PERMISSION_DENIED"
           ) {
 
-            showFormError(
-              "Firebase rejected this product. Check your Database Rules and required fields."
-            );
+            errorMessage =
+              "Firebase rejected the product. Check your Database Rules.";
 
-          } else {
+          } else if (
+            error.code ===
+            "PERMISSION_DENIED"
+          ) {
 
-            showFormError(
-              `Failed to save product: ${
-                error?.message ||
-                "Unknown error"
-              }`
-            );
+            errorMessage =
+              "Permission denied by Firebase.";
+
+          } else if (
+            error.message
+          ) {
+
+            errorMessage =
+              `Failed to save product: ${error.message}`;
 
           }
+
+
+          showFormError(
+            errorMessage
+          );
 
         }
 
@@ -1766,9 +1472,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
 
-      /* =============================================
+      /* ===============================================
          PRODUCTS
-      ============================================= */
+      =============================================== */
 
       const productsSnapshot =
         await get(
@@ -1787,13 +1493,9 @@ document.addEventListener("DOMContentLoaded", () => {
         productsSnapshot.exists()
       ) {
 
-        const productData =
-          productsSnapshot.val();
-
-
         productCountValue =
           Object.keys(
-            productData
+            productsSnapshot.val()
           ).length;
 
       }
@@ -1813,106 +1515,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      /* =============================================
+      /* ===============================================
          ORDERS
-      ============================================= */
-
-      const ordersSnapshot =
-        await get(
-          ref(
-            database,
-            "orders"
-          )
-        );
-
-
-      let orderCountValue =
-        0;
-
-
-      let revenue =
-        0;
-
-
-      if (
-        ordersSnapshot.exists()
-      ) {
-
-        const orders =
-          ordersSnapshot.val();
-
-
-        /*
-          Your current database structure is:
-
-          orders
-            └── UID
-                └── ORDER ID
-
-          Therefore we need to loop through
-          users/UID/orderID instead of assuming
-          every direct child is an order.
-        */
-
-        Object.values(
-          orders
-        ).forEach(userOrders => {
-
-          if (
-            !userOrders ||
-            typeof userOrders !==
-              "object"
-          ) {
-
-            return;
-
-          }
-
-
-          Object.values(
-            userOrders
-          ).forEach(order => {
-
-            if (
-              !order ||
-              typeof order !==
-                "object"
-            ) {
-
-              return;
-
-            }
-
-
-            orderCountValue++;
-
-
-            revenue +=
-              Number(
-                order.total ||
-                order.amount ||
-                0
-              );
-
-          });
-
-        });
-
-      }
-
+      =============================================== */
 
       const orderCount =
         document.getElementById(
           "orderCount"
         );
-
-
-      if (orderCount) {
-
-        orderCount.textContent =
-          orderCountValue;
-
-      }
 
 
       const revenueCount =
@@ -1921,44 +1531,41 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
+      if (orderCount) {
+
+        orderCount.textContent =
+          "0";
+
+      }
+
+
       if (revenueCount) {
 
         revenueCount.textContent =
-          `₱${formatPrice(
-            revenue
-          )}`;
+          "₱0.00";
 
       }
 
 
-      /* =============================================
+      /*
+        NOTE:
+
+        Your current Firebase Rules protect
+        /orders/$uid.
+
+        The admin dashboard cannot safely read
+        the entire /orders path with those rules.
+
+        We leave these values at zero for now.
+
+        We will build the proper Admin Orders
+        system next.
+      */
+
+
+      /* ===============================================
          USERS
-      ============================================= */
-
-      const usersSnapshot =
-        await get(
-          ref(
-            database,
-            "users"
-          )
-        );
-
-
-      let userCountValue =
-        0;
-
-
-      if (
-        usersSnapshot.exists()
-      ) {
-
-        userCountValue =
-          Object.keys(
-            usersSnapshot.val()
-          ).length;
-
-      }
-
+      =============================================== */
 
       const userCount =
         document.getElementById(
@@ -1969,9 +1576,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (userCount) {
 
         userCount.textContent =
-          userCountValue;
+          "0";
 
       }
+
+
+      /*
+        Same situation for /users.
+
+        Your rules allow a user to read/write
+        only their own /users/$uid.
+
+        We'll create proper admin access later.
+      */
 
 
     } catch (error) {
@@ -2007,9 +1624,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
-          await signOut(
-            auth
-          );
+          await signOut(auth);
 
 
           showToast(
@@ -2075,9 +1690,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ) {
 
     const number =
-      Number(
-        value || 0
-      );
+      Number(value || 0);
 
 
     return number.toLocaleString(

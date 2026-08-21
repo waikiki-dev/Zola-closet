@@ -4,6 +4,11 @@
    AUTH + REALTIME DATABASE
 ===================================================== */
 
+
+/* =====================================================
+   FIREBASE APP
+===================================================== */
+
 import {
   initializeApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -83,7 +88,7 @@ const firebaseConfig = {
 
 
 /* =====================================================
-   INITIALIZE FIREBASE
+   INITIALIZE FIREBASE APP
 ===================================================== */
 
 const app =
@@ -91,7 +96,7 @@ const app =
 
 
 /* =====================================================
-   ANALYTICS
+   FIREBASE ANALYTICS
 ===================================================== */
 
 let analytics = null;
@@ -101,10 +106,14 @@ try {
   analytics =
     getAnalytics(app);
 
+  console.log(
+    "📊 Firebase Analytics: Ready"
+  );
+
 } catch (error) {
 
   console.warn(
-    "Firebase Analytics unavailable:",
+    "⚠️ Firebase Analytics unavailable:",
     error
   );
 
@@ -112,11 +121,16 @@ try {
 
 
 /* =====================================================
-   AUTH
+   FIREBASE AUTH
 ===================================================== */
 
 const auth =
   getAuth(app);
+
+
+console.log(
+  "🔐 Firebase Authentication: Ready"
+);
 
 
 /* =====================================================
@@ -133,11 +147,171 @@ googleProvider.setCustomParameters({
 
 
 /* =====================================================
-   REALTIME DATABASE
+   FIREBASE REALTIME DATABASE
 ===================================================== */
 
 const database =
   getDatabase(app);
+
+
+console.log(
+  "🔥 Firebase Realtime Database: Ready"
+);
+
+
+/* =====================================================
+   DATABASE REFERENCE HELPER
+===================================================== */
+
+/*
+   This helper creates a reference to any
+   Realtime Database path.
+
+   Example:
+
+   databaseRef("products")
+
+   databaseRef("products/abc123")
+*/
+
+function databaseRef(path = "") {
+
+  return ref(
+    database,
+    path
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE PRODUCT HELPERS
+===================================================== */
+
+/*
+   These helpers are optional, but keeping them here
+   makes the Firebase database connection reusable.
+
+   Product data itself is still created by admin.js.
+*/
+
+
+async function getProducts() {
+
+  const productsRef =
+    databaseRef("products");
+
+  return await get(
+    productsRef
+  );
+
+}
+
+
+async function createProduct(
+  productData
+) {
+
+  const productsRef =
+    databaseRef("products");
+
+  const newProductRef =
+    push(productsRef);
+
+  await set(
+    newProductRef,
+    productData
+  );
+
+  return newProductRef.key;
+
+}
+
+
+async function updateProduct(
+  productId,
+  productData
+) {
+
+  const productRef =
+    databaseRef(
+      `products/${productId}`
+    );
+
+  await update(
+    productRef,
+    productData
+  );
+
+}
+
+
+async function deleteProduct(
+  productId
+) {
+
+  const productRef =
+    databaseRef(
+      `products/${productId}`
+    );
+
+  await remove(
+    productRef
+  );
+
+}
+
+
+/* =====================================================
+   FIREBASE CONNECTION TEST
+===================================================== */
+
+/*
+   This function checks whether the application
+   can actually reach the /products path.
+
+   It does NOT write anything.
+*/
+
+async function testDatabaseConnection() {
+
+  try {
+
+    const productsRef =
+      databaseRef("products");
+
+    await get(
+      productsRef
+    );
+
+    console.log(
+      "✅ Realtime Database connection test passed."
+    );
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "❌ Realtime Database connection test failed:",
+      error
+    );
+
+    console.error(
+      "Firebase error code:",
+      error.code
+    );
+
+    console.error(
+      "Firebase error message:",
+      error.message
+    );
+
+    return false;
+
+  }
+
+}
 
 
 /* =====================================================
@@ -170,7 +344,19 @@ export {
   get,
   push,
   update,
-  remove
+  remove,
+
+  /* Database Helper */
+  databaseRef,
+
+  /* Product Helpers */
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+
+  /* Diagnostics */
+  testDatabaseConnection
 
 };
 
@@ -180,17 +366,38 @@ export {
 ===================================================== */
 
 console.log(
-  "🔥 Zola's Closet Firebase initialized successfully."
+  "=============================================="
 );
 
 console.log(
-  "🔥 Firebase Auth: Ready"
+  "🔥 ZOLA'S CLOSET FIREBASE"
 );
 
 console.log(
-  "🔥 Realtime Database: Ready"
+  "=============================================="
 );
 
 console.log(
-  "🛍️ Product CRUD functions: Ready"
+  "🔥 Firebase App: Ready"
+);
+
+console.log(
+  "🔐 Firebase Auth: Ready"
+);
+
+console.log(
+  "🗄️ Realtime Database: Ready"
+);
+
+console.log(
+  "🛍️ Product CRUD: Ready"
+);
+
+console.log(
+  "📍 Database:",
+  firebaseConfig.databaseURL
+);
+
+console.log(
+  "=============================================="
 );

@@ -2,7 +2,6 @@
    ZOLA'S CLOSET
    ADMIN DASHBOARD
    ADMIN.JS
-   FIREBASE PRODUCT MANAGEMENT
 ===================================================== */
 
 import {
@@ -97,38 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     HELPER
-  =================================================== */
-
-  function getField(id) {
-    return document.getElementById(id);
-  }
-
-
-  function getFieldValue(id) {
-
-    const field = getField(id);
-
-    return field
-      ? field.value.trim()
-      : "";
-
-  }
-
-
-  function setFieldValue(id, value) {
-
-    const field = getField(id);
-
-    if (field) {
-      field.value =
-        value ?? "";
-    }
-
-  }
-
-
-  /* ===================================================
      SIDEBAR NAVIGATION
   =================================================== */
 
@@ -206,9 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (sidebar) {
 
-      sidebar.classList.remove(
-        "open"
-      );
+      sidebar.classList.remove("open");
 
     }
 
@@ -217,34 +182,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
   navItems.forEach(item => {
 
-    item.addEventListener(
-      "click",
-      () => {
+    item.addEventListener("click", () => {
 
-        const section =
-          item.dataset.section;
+      const section =
+        item.dataset.section;
 
-        showSection(section);
+      showSection(section);
 
-      }
-    );
+    });
 
   });
 
 
   quickActions.forEach(button => {
 
-    button.addEventListener(
-      "click",
-      () => {
+    button.addEventListener("click", () => {
 
-        const section =
-          button.dataset.section;
+      const section =
+        button.dataset.section;
 
-        showSection(section);
+      showSection(section);
+
+      /*
+        If Quick Action says Add Product,
+        automatically open the product modal.
+      */
+
+      if (
+        section === "products" &&
+        button.querySelector("strong")?.textContent
+          ?.toLowerCase()
+          .includes("add product")
+      ) {
+
+        setTimeout(() => {
+
+          openProductModal();
+
+        }, 100);
 
       }
-    );
+
+    });
 
   });
 
@@ -255,16 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (menuBtn && sidebar) {
 
-    menuBtn.addEventListener(
-      "click",
-      () => {
+    menuBtn.addEventListener("click", () => {
 
-        sidebar.classList.toggle(
-          "open"
-        );
+      sidebar.classList.toggle("open");
 
-      }
-    );
+    });
 
   }
 
@@ -274,12 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   =================================================== */
 
   const toast =
-    document.getElementById(
-      "adminToast"
-    );
-
-
-  let toastTimer = null;
+    document.getElementById("adminToast");
 
 
   function showToast(
@@ -287,35 +256,21 @@ document.addEventListener("DOMContentLoaded", () => {
     duration = 3000
   ) {
 
-    if (!toast)
-      return;
+    if (!toast) return;
 
 
     toast.textContent =
       message;
 
 
-    toast.classList.add(
-      "show"
-    );
+    toast.classList.add("show");
 
 
-    clearTimeout(
-      toastTimer
-    );
+    setTimeout(() => {
 
+      toast.classList.remove("show");
 
-    toastTimer =
-      setTimeout(
-        () => {
-
-          toast.classList.remove(
-            "show"
-          );
-
-        },
-        duration
-      );
+    }, duration);
 
   }
 
@@ -324,12 +279,9 @@ document.addEventListener("DOMContentLoaded", () => {
      PRODUCT MODAL
   =================================================== */
 
-  function openProductModal(
-    product = null
-  ) {
+  function openProductModal(product = null) {
 
-    if (!productModal)
-      return;
+    if (!productModal) return;
 
 
     if (productFormMessage) {
@@ -342,10 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-
-    /* ================================================
-       EDIT
-    ================================================ */
 
     if (product) {
 
@@ -361,100 +309,117 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      setFieldValue(
-        "productId",
-        product.id
-      );
+      const productId =
+        document.getElementById("productId");
+
+      const productName =
+        document.getElementById("productName");
+
+      const productPrice =
+        document.getElementById("productPrice");
+
+      const productStock =
+        document.getElementById("productStock");
+
+      const productCategory =
+        document.getElementById("productCategory");
+
+      const productSize =
+        document.getElementById("productSize");
+
+      const productImage =
+        document.getElementById("productImage");
+
+      const productDescription =
+        document.getElementById("productDescription");
+
+      const productBadge =
+        document.getElementById("productBadge");
+
+      const productDiscount =
+        document.getElementById("productDiscount");
 
 
-      setFieldValue(
-        "productName",
-        product.name
-      );
+      if (productId) {
+
+        productId.value =
+          product.id || "";
+
+      }
 
 
-      setFieldValue(
-        "productPrice",
-        product.price
-      );
+      if (productName) {
+
+        productName.value =
+          product.name || "";
+
+      }
 
 
-      setFieldValue(
-        "productStock",
-        product.stock
-      );
+      if (productPrice) {
+
+        productPrice.value =
+          product.price ?? "";
+
+      }
 
 
-      setFieldValue(
-        "productCategory",
-        product.category
-      );
+      if (productStock) {
+
+        productStock.value =
+          product.stock ?? 0;
+
+      }
 
 
-      /*
-        New normalized structure:
+      if (productCategory) {
 
-        sizes: ["2T", "3T", "4T"]
+        productCategory.value =
+          product.category || "";
 
-        But we continue supporting
-        the old "size" string.
-      */
-
-      let sizeValue = "";
+      }
 
 
-      if (
-        Array.isArray(
-          product.sizes
-        )
-      ) {
+      if (productSize) {
 
-        sizeValue =
-          product.sizes.join(", ");
-
-      } else {
-
-        sizeValue =
+        productSize.value =
           product.size || "";
 
       }
 
 
-      setFieldValue(
-        "productSize",
-        sizeValue
-      );
+      if (productImage) {
+
+        productImage.value =
+          product.image || "";
+
+      }
 
 
-      setFieldValue(
-        "productImage",
-        product.image
-      );
+      if (productDescription) {
+
+        productDescription.value =
+          product.description || "";
+
+      }
 
 
-      setFieldValue(
-        "productDescription",
-        product.description
-      );
+      if (productBadge) {
+
+        productBadge.value =
+          product.badge || "";
+
+      }
 
 
-      setFieldValue(
-        "productBadge",
-        product.badge
-      );
+      if (productDiscount) {
 
+        productDiscount.value =
+          product.discount ?? 0;
 
-      setFieldValue(
-        "productDiscount",
-        product.discount ?? 0
-      );
-
+      }
 
     } else {
-
-      /* ================================================
-         ADD
-      ================================================ */
 
       editingProductId =
         null;
@@ -475,24 +440,37 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
 
-      setFieldValue(
-        "productDiscount",
-        0
-      );
+      const productDiscount =
+        document.getElementById(
+          "productDiscount"
+        );
 
 
-      setFieldValue(
-        "productId",
-        ""
-      );
+      const productId =
+        document.getElementById(
+          "productId"
+        );
+
+
+      if (productDiscount) {
+
+        productDiscount.value =
+          0;
+
+      }
+
+
+      if (productId) {
+
+        productId.value =
+          "";
+
+      }
 
     }
 
 
-    productModal.classList.add(
-      "active"
-    );
-
+    productModal.classList.add("active");
 
     document.body.style.overflow =
       "hidden";
@@ -502,8 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeProductModalHandler() {
 
-    if (!productModal)
-      return;
+    if (!productModal) return;
 
 
     productModal.classList.remove(
@@ -522,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     ADD PRODUCT BUTTON
+     ADD PRODUCT
   =================================================== */
 
   if (addProductBtn) {
@@ -666,14 +643,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        if (profileAvatar) {
-
-          profileAvatar.textContent =
-            "A";
-
-        }
-
-
         return;
 
       }
@@ -728,11 +697,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       /* ===============================================
-         LOAD PRODUCTS
+         LOAD DATA
       =============================================== */
 
       await loadProducts();
-
 
       await updateDashboardStats();
 
@@ -741,182 +709,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* ===================================================
-     NORMALIZE ADMIN PRODUCT
-  =================================================== */
-
-  function normalizeAdminProduct(
-    product,
-    id
-  ) {
-
-    if (!product)
-      return null;
-
-
-    const price =
-      Number(
-        product.price || 0
-      );
-
-
-    const discount =
-      Number(
-        product.discount || 0
-      );
-
-
-    /*
-      Convert old size string
-      into the new sizes array.
-    */
-
-    let sizes = [];
-
-
-    if (
-      Array.isArray(
-        product.sizes
-      )
-    ) {
-
-      sizes =
-        product.sizes;
-
-    } else if (
-      typeof product.size ===
-      "string" &&
-      product.size.trim()
-    ) {
-
-      sizes =
-        product.size
-          .split(",")
-          .map(
-            size =>
-              size.trim()
-          )
-          .filter(Boolean);
-
-    }
-
-
-    /*
-      Support old imageUrl
-      field as well.
-    */
-
-    const image =
-      String(
-        product.image ||
-        product.imageUrl ||
-        ""
-      );
-
-
-    return {
-
-      id,
-
-      firebaseId:
-        id,
-
-      name:
-        String(
-          product.name ||
-          "Unnamed Product"
-        ),
-
-      price,
-
-      stock:
-        Number(
-          product.stock ?? 0
-        ),
-
-      category:
-        String(
-          product.category ||
-          "all"
-        ).toLowerCase(),
-
-      sizes,
-
-      /*
-        Keep old size field for
-        backward compatibility.
-      */
-
-      size:
-        sizes.join(", "),
-
-      image,
-
-      description:
-        String(
-          product.description ||
-          ""
-        ),
-
-      badge:
-        String(
-          product.badge ||
-          ""
-        ),
-
-      discount,
-
-      /*
-        Fields expected by
-        customer script.js
-      */
-
-      oldPrice:
-        Number(
-          product.oldPrice ||
-          product.originalPrice ||
-          (
-            discount > 0
-              ? price /
-                (1 - discount / 100)
-              : price
-          )
-        ),
-
-      rating:
-        Number(
-          product.rating || 5
-        ),
-
-      featured:
-        product.featured === true,
-
-      color:
-        String(
-          product.color ||
-          ""
-        ),
-
-      createdAt:
-        product.createdAt ||
-        null,
-
-      updatedAt:
-        product.updatedAt ||
-        null
-
-    };
-
-  }
-
-
-  /* ===================================================
      LOAD PRODUCTS
   =================================================== */
 
   async function loadProducts() {
 
-    if (!productsTableBody)
-      return;
+    if (!productsTableBody) return;
 
 
     productsTableBody.innerHTML = `
@@ -955,35 +753,19 @@ document.addEventListener("DOMContentLoaded", () => {
           snapshot.val();
 
 
-        if (
-          data &&
-          typeof data ===
-            "object"
-        ) {
+        Object.entries(data).forEach(
+          ([id, product]) => {
 
-          Object.entries(data)
-            .forEach(
-              ([id, product]) => {
+            products.push({
 
-                const normalized =
-                  normalizeAdminProduct(
-                    product,
-                    id
-                  );
+              id,
 
+              ...product
 
-                if (normalized) {
+            });
 
-                  products.push(
-                    normalized
-                  );
-
-                }
-
-              }
-            );
-
-        }
+          }
+        );
 
       }
 
@@ -1026,8 +808,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderProducts() {
 
-    if (!productsTableBody)
-      return;
+    if (!productsTableBody) return;
 
 
     const search =
@@ -1045,35 +826,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     const filteredProducts =
-      products.filter(
-        product => {
+      products.filter(product => {
 
-          const matchesSearch =
-            !search ||
-            String(
-              product.name || ""
-            )
-              .toLowerCase()
-              .includes(search);
+        const productName =
+          String(
+            product.name || ""
+          )
+            .toLowerCase();
 
 
-          const matchesCategory =
-            category === "all" ||
-            product.category ===
-              category;
+        const productDescription =
+          String(
+            product.description || ""
+          )
+            .toLowerCase();
 
 
-          return (
-            matchesSearch &&
-            matchesCategory
-          );
+        const matchesSearch =
+          !search ||
+          productName.includes(search) ||
+          productDescription.includes(search);
 
-        }
-      );
+
+        const matchesCategory =
+          category === "all" ||
+          product.category === category;
+
+
+        return (
+          matchesSearch &&
+          matchesCategory
+        );
+
+      });
 
 
     if (
-      !filteredProducts.length
+      filteredProducts.length === 0
     ) {
 
       productsTableBody.innerHTML = `
@@ -1094,185 +883,156 @@ document.addEventListener("DOMContentLoaded", () => {
 
     productsTableBody.innerHTML =
       filteredProducts
-        .map(
-          product => {
+        .map(product => {
 
-            const stock =
-              Number(
-                product.stock || 0
-              );
-
-
-            let stockClass =
-              "stock-good";
+          const stock =
+            Number(
+              product.stock || 0
+            );
 
 
-            if (
-              stock === 0
-            ) {
-
-              stockClass =
-                "stock-out";
-
-            } else if (
-              stock <= 5
-            ) {
-
-              stockClass =
-                "stock-low";
-
-            }
+          let stockClass =
+            "stock-good";
 
 
-            const image =
-              product.image ||
-              "";
+          if (stock === 0) {
+
+            stockClass =
+              "stock-out";
+
+          } else if (stock <= 5) {
+
+            stockClass =
+              "stock-low";
+
+          }
 
 
-            return `
+          const image =
+            product.image ||
+            "";
 
-              <tr>
 
-                <td>
+          const productName =
+            product.name ||
+            "Unnamed Product";
 
-                  <div
-                    class="product-table-info"
+
+          return `
+
+            <tr>
+
+              <td>
+
+                <div class="product-table-info">
+
+                  <img
+                    src="${escapeHtml(image)}"
+                    class="product-table-image"
+                    alt="${escapeHtml(productName)}"
+                    onerror="
+                      this.style.opacity='0.4';
+                    "
                   >
 
-                    ${
-                      image
-                        ? `
-                          <img
-                            src="${escapeHtml(image)}"
-                            class="product-table-image"
-                            alt="${escapeHtml(
-                              product.name ||
-                              "Product"
-                            )}"
-                            onerror="
-                              this.style.opacity='0.4';
-                            "
-                          >
-                        `
-                        : `
-                          <div
-                            class="product-table-image"
-                            style="
-                              display:grid;
-                              place-items:center;
-                              font-size:20px;
-                            "
-                          >
-                            🎀
-                          </div>
-                        `
-                    }
+                  <div>
 
+                    <div class="product-table-name">
 
-                    <div>
-
-                      <div
-                        class="product-table-name"
-                      >
-                        ${escapeHtml(
-                          product.name ||
-                          "Unnamed Product"
-                        )}
-                      </div>
+                      ${escapeHtml(
+                        productName
+                      )}
 
                     </div>
 
                   </div>
 
-                </td>
+                </div>
+
+              </td>
 
 
-                <td>
+              <td>
 
-                  <span
-                    class="product-table-category"
-                  >
-                    ${escapeHtml(
-                      product.category ||
-                      "-"
-                    )}
-                  </span>
+                <span
+                  class="product-table-category"
+                >
 
-                </td>
-
-
-                <td>
-                  ₱${formatPrice(
-                    product.price
+                  ${escapeHtml(
+                    product.category ||
+                    "-"
                   )}
-                </td>
+
+                </span>
+
+              </td>
 
 
-                <td>
+              <td>
 
-                  <span
-                    class="${stockClass}"
+                ₱${formatPrice(
+                  product.price
+                )}
+
+              </td>
+
+
+              <td>
+
+                <span
+                  class="${stockClass}"
+                >
+
+                  ${stock}
+
+                </span>
+
+              </td>
+
+
+              <td>
+
+                <span class="product-status">
+
+                  Active
+
+                </span>
+
+              </td>
+
+
+              <td>
+
+                <div class="table-actions">
+
+                  <button
+                    type="button"
+                    class="table-action"
+                    data-edit-product="${escapeHtml(product.id)}"
+                    title="Edit"
                   >
-                    ${stock}
-                  </span>
-
-                </td>
+                    ✏️
+                  </button>
 
 
-                <td>
-
-                  <span
-                    class="product-status"
+                  <button
+                    type="button"
+                    class="table-action delete"
+                    data-delete-product="${escapeHtml(product.id)}"
+                    title="Delete"
                   >
-                    ${
-                      product.featured
-                        ? "Featured"
-                        : "Active"
-                    }
-                  </span>
+                    🗑️
+                  </button>
 
-                </td>
+                </div>
 
+              </td>
 
-                <td>
+            </tr>
 
-                  <div
-                    class="table-actions"
-                  >
+          `;
 
-                    <button
-                      type="button"
-                      class="table-action"
-                      data-edit-product="${escapeHtml(
-                        product.id
-                      )}"
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-
-
-                    <button
-                      type="button"
-                      class="table-action delete"
-                      data-delete-product="${escapeHtml(
-                        product.id
-                      )}"
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
-
-                  </div>
-
-                </td>
-
-              </tr>
-
-            `;
-
-          }
-        )
+        })
         .join("");
 
 
@@ -1299,119 +1059,104 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
 
-    editButtons.forEach(
-      button => {
+    editButtons.forEach(button => {
 
-        button.addEventListener(
-          "click",
-          () => {
+      button.addEventListener(
+        "click",
+        () => {
 
-            const id =
-              button.dataset
-                .editProduct;
+          const id =
+            button.dataset.editProduct;
 
 
-            const product =
-              products.find(
-                item =>
-                  String(
-                    item.id
-                  ) ===
-                  String(id)
-              );
+          const product =
+            products.find(
+              item =>
+                item.id === id
+            );
 
 
-            if (product) {
+          if (product) {
 
-              openProductModal(
-                product
-              );
-
-            }
+            openProductModal(
+              product
+            );
 
           }
-        );
 
-      }
-    );
+        }
+      );
 
-
-    deleteButtons.forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          async () => {
-
-            const id =
-              button.dataset
-                .deleteProduct;
+    });
 
 
-            const product =
-              products.find(
-                item =>
-                  String(
-                    item.id
-                  ) ===
-                  String(id)
-              );
+    deleteButtons.forEach(button => {
+
+      button.addEventListener(
+        "click",
+        async () => {
+
+          const id =
+            button.dataset.deleteProduct;
 
 
-            if (!product)
-              return;
+          const product =
+            products.find(
+              item =>
+                item.id === id
+            );
 
 
-            const confirmed =
-              confirm(
-                `Delete "${product.name}"?`
-              );
+          if (!product) return;
 
 
-            if (!confirmed)
-              return;
+          const confirmed =
+            confirm(
+              `Delete "${product.name}"?`
+            );
 
 
-            try {
-
-              await remove(
-                ref(
-                  database,
-                  `products/${id}`
-                )
-              );
+          if (!confirmed) return;
 
 
-              showToast(
-                "Product deleted successfully."
-              );
+          try {
+
+            await remove(
+              ref(
+                database,
+                `products/${id}`
+              )
+            );
 
 
-              await loadProducts();
+            showToast(
+              "Product deleted successfully."
+            );
 
 
-              await updateDashboardStats();
+            await loadProducts();
+
+            await updateDashboardStats();
 
 
-            } catch (error) {
+          } catch (error) {
 
-              console.error(
-                "❌ Delete error:",
-                error
-              );
+            console.error(
+              "❌ Delete error:",
+              error
+            );
 
 
-              showToast(
-                "Failed to delete product."
-              );
-
-            }
+            showToast(
+              "Failed to delete product."
+            );
 
           }
-        );
 
-      }
-    );
+        }
+      );
+
+    });
 
   }
 
@@ -1441,67 +1186,121 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           READ FORM
+           FORM ELEMENTS
         ============================================= */
 
-        const name =
-          getFieldValue(
+        const productName =
+          document.getElementById(
             "productName"
           );
 
 
-        const price =
-          Number(
-            getField(
-              "productPrice"
-            )?.value
+        const productPrice =
+          document.getElementById(
+            "productPrice"
           );
 
 
-        const stock =
-          Number(
-            getField(
-              "productStock"
-            )?.value
+        const productStock =
+          document.getElementById(
+            "productStock"
           );
 
 
-        const category =
-          getFieldValue(
+        const productCategory =
+          document.getElementById(
             "productCategory"
           );
 
 
-        const sizeInput =
-          getFieldValue(
+        const productSize =
+          document.getElementById(
             "productSize"
           );
 
 
-        const image =
-          getFieldValue(
+        const productImage =
+          document.getElementById(
             "productImage"
           );
 
 
-        const description =
-          getFieldValue(
+        const productDescription =
+          document.getElementById(
             "productDescription"
           );
 
 
-        const badge =
-          getFieldValue(
+        const productBadge =
+          document.getElementById(
             "productBadge"
           );
 
 
-        const discount =
-          Number(
-            getField(
-              "productDiscount"
-            )?.value || 0
+        const productDiscount =
+          document.getElementById(
+            "productDiscount"
           );
+
+
+        /* =============================================
+           VALUES
+        ============================================= */
+
+        const name =
+          productName
+            ? productName.value.trim()
+            : "";
+
+
+        const price =
+          productPrice
+            ? Number(productPrice.value)
+            : NaN;
+
+
+        const stock =
+          productStock
+            ? Number(productStock.value)
+            : NaN;
+
+
+        const category =
+          productCategory
+            ? productCategory.value
+            : "";
+
+
+        const size =
+          productSize
+            ? productSize.value.trim()
+            : "";
+
+
+        const image =
+          productImage
+            ? productImage.value.trim()
+            : "";
+
+
+        const description =
+          productDescription
+            ? productDescription.value.trim()
+            : "";
+
+
+        const badge =
+          productBadge
+            ? productBadge.value.trim()
+            : "";
+
+
+        const discount =
+          productDiscount
+            ? Number(
+                productDiscount.value || 0
+              )
+            : 0;
 
 
         /* =============================================
@@ -1512,6 +1311,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
           showFormError(
             "Product name is required."
+          );
+
+          return;
+
+        }
+
+
+        if (name.length > 150) {
+
+          showFormError(
+            "Product name must be 150 characters or less."
           );
 
           return;
@@ -1558,10 +1368,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        const validCategories = [
+          "girls",
+          "boys",
+          "baby",
+          "sets"
+        ];
+
+
+        if (
+          !validCategories.includes(
+            category
+          )
+        ) {
+
+          showFormError(
+            "Invalid product category."
+          );
+
+          return;
+
+        }
+
+
         if (!image) {
 
           showFormError(
             "Product image URL is required."
+          );
+
+          return;
+
+        }
+
+
+        if (
+          description.length > 1000
+        ) {
+
+          showFormError(
+            "Description must be 1000 characters or less."
           );
 
           return;
@@ -1585,140 +1431,132 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /* =============================================
-           NORMALIZE SIZES
+           FIREBASE PRODUCT DATA
+           
+           IMPORTANT:
+           Your Firebase Rules require:
+           name
+           category
+           price
+           oldPrice
+           discount
+           rating
+           image
+           description
+           featured
+           stock
+           
+           The oldPrice, rating and featured values
+           are automatically supplied here because
+           they are not currently fields in index.html.
         ============================================= */
 
-        const sizes =
-          sizeInput
-            ? sizeInput
-                .split(",")
-                .map(
-                  size =>
-                    size.trim()
-                )
-                .filter(Boolean)
-            : [];
+        const existingProduct =
+          editingProductId
+            ? products.find(
+                product =>
+                  product.id ===
+                  editingProductId
+              )
+            : null;
 
 
-        /* =============================================
-           CALCULATE OLD PRICE
-        ============================================= */
+        /*
+          Preserve oldPrice when editing.
+
+          If the existing product has no oldPrice,
+          calculate it from the current price and
+          discount if possible.
+        */
 
         let oldPrice =
-          price;
+          Number(
+            existingProduct?.oldPrice || 0
+          );
 
 
         if (
-          discount > 0 &&
-          discount < 100
+          oldPrice <= 0 &&
+          discount > 0
         ) {
 
           oldPrice =
-            Math.round(
-              (
-                price /
-                (
-                  1 -
-                  discount / 100
-                )
-              ) *
-              100
-            ) / 100;
+            price /
+            (1 - discount / 100);
 
         }
 
 
-        /* =============================================
-           PRESERVE EXISTING PRODUCT DATA
-        ============================================= */
+        /*
+          If there is no discount,
+          oldPrice defaults to current price.
+        */
 
-        let existingProduct =
-          null;
+        if (
+          oldPrice <= 0
+        ) {
 
-
-        if (editingProductId) {
-
-          existingProduct =
-            products.find(
-              product =>
-                String(
-                  product.id
-                ) ===
-                String(
-                  editingProductId
-                )
-            ) || null;
+          oldPrice =
+            price;
 
         }
 
 
-        /* =============================================
-           PRODUCT DATA
-        ============================================= */
+        /*
+          Preserve rating when editing.
+          New products start at 0.
+        */
+
+        const rating =
+          Number(
+            existingProduct?.rating || 0
+          );
+
+
+        /*
+          Preserve featured state when editing.
+          New products default to false.
+        */
+
+        const featured =
+          existingProduct?.featured === true
+            ? true
+            : false;
+
 
         const productData = {
 
-          /*
-            Core
-          */
+          /* REQUIRED BY FIREBASE RULES */
 
           name,
+
+          category,
 
           price,
 
           oldPrice,
 
-          stock,
+          discount,
 
-          category,
+          rating,
 
           image,
 
           description,
 
+          featured,
 
-          /*
-            Sizes
-          */
-
-          sizes,
-
-          /*
-            Backward compatibility
-          */
-
-          size:
-            sizes.join(", "),
+          stock,
 
 
-          /*
-            Store display
-          */
+          /* ADDITIONAL STORE DATA */
+
+          size,
 
           badge,
 
-          discount,
 
-
-          /*
-            Existing optional data
-          */
-
-          rating:
-            existingProduct?.rating ||
-            5,
-
-          featured:
-            existingProduct?.featured === true,
-
-          color:
-            existingProduct?.color ||
-            "",
-
-
-          /*
-            Timestamps
-          */
+          /* TIMESTAMP */
 
           updatedAt:
             Date.now()
@@ -1726,13 +1564,23 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
 
+        console.log(
+          "📦 Product data being saved:",
+          productData
+        );
+
+
         /* =============================================
-           SAVE
+           SAVE TO FIREBASE
         ============================================= */
 
         try {
 
           if (editingProductId) {
+
+            /*
+              EDIT EXISTING PRODUCT
+            */
 
             await update(
               ref(
@@ -1743,12 +1591,22 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+            console.log(
+              "✅ Product updated:",
+              editingProductId
+            );
+
+
             showToast(
-              "Product updated successfully. ✨"
+              "Product updated successfully."
             );
 
 
           } else {
+
+            /*
+              CREATE NEW PRODUCT
+            */
 
             const productsRef =
               ref(
@@ -1776,12 +1634,22 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
+            console.log(
+              "✅ Product created:",
+              newProductRef.key
+            );
+
+
             showToast(
-              "Product added successfully. 🎀"
+              "Product added successfully."
             );
 
           }
 
+
+          /* ===========================================
+             SUCCESS MESSAGE
+          =========================================== */
 
           if (productFormMessage) {
 
@@ -1794,20 +1662,24 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
 
-          await loadProducts();
+          /* ===========================================
+             REFRESH DATA
+          =========================================== */
 
+          await loadProducts();
 
           await updateDashboardStats();
 
 
-          setTimeout(
-            () => {
+          /* ===========================================
+             CLOSE MODAL
+          =========================================== */
 
-              closeProductModalHandler();
+          setTimeout(() => {
 
-            },
-            500
-          );
+            closeProductModalHandler();
+
+          }, 700);
 
 
         } catch (error) {
@@ -1830,11 +1702,29 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-          showFormError(
-            getDatabaseErrorMessage(
-              error
-            )
-          );
+          /*
+            Show a more useful error message.
+          */
+
+          if (
+            error?.code ===
+            "PERMISSION_DENIED"
+          ) {
+
+            showFormError(
+              "Firebase rejected this product. Check your Database Rules and required fields."
+            );
+
+          } else {
+
+            showFormError(
+              `Failed to save product: ${
+                error?.message ||
+                "Unknown error"
+              }`
+            );
+
+          }
 
         }
 
@@ -1897,22 +1787,14 @@ document.addEventListener("DOMContentLoaded", () => {
         productsSnapshot.exists()
       ) {
 
-        const data =
+        const productData =
           productsSnapshot.val();
 
 
-        if (
-          data &&
-          typeof data ===
-            "object"
-        ) {
-
-          productCountValue =
-            Object.keys(
-              data
-            ).length;
-
-        }
+        productCountValue =
+          Object.keys(
+            productData
+          ).length;
 
       }
 
@@ -1961,55 +1843,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /*
-          Orders are stored:
+          Your current database structure is:
 
-          orders/
-            userId/
-              orderNumber/
+          orders
+            └── UID
+                └── ORDER ID
 
+          Therefore we need to loop through
+          users/UID/orderID instead of assuming
+          every direct child is an order.
         */
 
-        if (
-          orders &&
-          typeof orders ===
-            "object"
-        ) {
+        Object.values(
+          orders
+        ).forEach(userOrders => {
+
+          if (
+            !userOrders ||
+            typeof userOrders !==
+              "object"
+          ) {
+
+            return;
+
+          }
+
 
           Object.values(
-            orders
-          ).forEach(
-            userOrders => {
+            userOrders
+          ).forEach(order => {
 
-              if (
-                !userOrders ||
-                typeof userOrders !==
-                  "object"
-              )
-                return;
+            if (
+              !order ||
+              typeof order !==
+                "object"
+            ) {
 
-
-              Object.values(
-                userOrders
-              ).forEach(
-                order => {
-
-                  orderCountValue++;
-
-
-                  revenue +=
-                    Number(
-                      order?.total ||
-                      order?.amount ||
-                      0
-                    );
-
-                }
-              );
+              return;
 
             }
-          );
 
-        }
+
+            orderCountValue++;
+
+
+            revenue +=
+              Number(
+                order.total ||
+                order.amount ||
+                0
+              );
+
+          });
+
+        });
 
       }
 
@@ -2065,22 +1952,10 @@ document.addEventListener("DOMContentLoaded", () => {
         usersSnapshot.exists()
       ) {
 
-        const users =
-          usersSnapshot.val();
-
-
-        if (
-          users &&
-          typeof users ===
-            "object"
-        ) {
-
-          userCountValue =
-            Object.keys(
-              users
-            ).length;
-
-        }
+        userCountValue =
+          Object.keys(
+            usersSnapshot.val()
+          ).length;
 
       }
 
@@ -2127,8 +2002,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-        if (!confirmed)
-          return;
+        if (!confirmed) return;
 
 
         try {
@@ -2143,15 +2017,12 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
 
-          setTimeout(
-            () => {
+          setTimeout(() => {
 
-              window.location.href =
-                "../index.html";
+            window.location.href =
+              "../index.html";
 
-            },
-            700
-          );
+          }, 700);
 
 
         } catch (error) {
@@ -2182,8 +2053,7 @@ document.addEventListener("DOMContentLoaded", () => {
     message
   ) {
 
-    if (!productFormMessage)
-      return;
+    if (!productFormMessage) return;
 
 
     productFormMessage.textContent =
@@ -2192,55 +2062,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     productFormMessage.className =
       "form-message error";
-
-  }
-
-
-  /* ===================================================
-     DATABASE ERROR
-  =================================================== */
-
-  function getDatabaseErrorMessage(
-    error
-  ) {
-
-    if (!error)
-      return "Failed to save product.";
-
-
-    switch (
-      error.code
-    ) {
-
-      case "PERMISSION_DENIED":
-
-        return (
-          "Permission denied. Check your Firebase Database Rules."
-        );
-
-
-      case "PERMISSION_DENIED: Permission denied":
-
-        return (
-          "Permission denied. Check your Firebase Database Rules."
-        );
-
-
-      case "NETWORK_ERROR":
-
-        return (
-          "Network error. Please check your internet connection."
-        );
-
-
-      default:
-
-        return (
-          error.message ||
-          "Failed to save product."
-        );
-
-    }
 
   }
 
@@ -2281,27 +2102,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return String(
       value ?? ""
     )
-
       .replaceAll(
         "&",
         "&amp;"
       )
-
       .replaceAll(
         "<",
         "&lt;"
       )
-
       .replaceAll(
         ">",
         "&gt;"
       )
-
       .replaceAll(
         '"',
         "&quot;"
       )
-
       .replaceAll(
         "'",
         "&#039;"
